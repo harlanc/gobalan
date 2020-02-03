@@ -19,6 +19,7 @@ import "proto/balance.proto";
   message WatchCreateRequest {
    
     string service_port = 1;
+    uint32 heartbeat_interval = 2; 
   }
 
   message WatchHeartbeatRequest {

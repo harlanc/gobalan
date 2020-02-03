@@ -45,10 +45,11 @@ type watchStreamRequest interface {
 
 // watchRequest is issued by the subscriber to start a new watcher
 type watchRequest struct {
-	ctx            context.Context
-	workerID       uint32
-	servicePort    string
-	loadReportData *any.Any
+	ctx               context.Context
+	workerID          uint32
+	servicePort       string
+	heartbeatInterval uint32
+	loadReportData    *any.Any
 }
 
 //NewWatcher NewWatcher
@@ -155,7 +156,8 @@ func (w *clientWatchStream) closeAndReceive() {
 
 func (wr *watchRequest) toWatchCreateRequestPB() *pb.WatchRequest {
 	req := &pb.WatchCreateRequest{
-		ServicePort: config.CfgWorker.ServicePort,
+		ServicePort:       config.CfgWorker.ServicePort,
+		HeartbeatInterval: config.CfgWorker.HeartbeatInterval,
 	}
 	cr := &pb.WatchRequest_CreateRequest{CreateRequest: req}
 	return &pb.WatchRequest{RequestUnion: cr}

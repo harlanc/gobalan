@@ -28,8 +28,8 @@ type cfgWorker struct {
 	MasterIP            string
 	MasterPort          string
 	ServicePort         string
-	HeartbeatInterval   uint
-	LoadReportInterval  uint
+	HeartbeatInterval   uint32
+	LoadReportInterval  uint32
 	MaxNetworkBandwidth float32
 	NetworkAdapterName  string
 }
