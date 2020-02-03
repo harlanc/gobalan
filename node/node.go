@@ -78,11 +78,32 @@ func (ws *WorkerNodeContainer) UpdateNode(workerid uint32, stat *pb.Stat) {
 
 }
 
+//GetNodeListLen get the length
+func (ws *WorkerNodeContainer) GetNodeListLen() int {
+	ws.mu.RLock()
+	defer ws.mu.RLock()
+
+	return len(ws.nodeList)
+}
+
 //GetNodeList get the node list
 func (ws *WorkerNodeContainer) GetNodeList() []*Node {
 
 	ws.mu.RLock()
 	defer ws.mu.RLock()
 
-	return ws.nodeList
+	//deep copy
+	newlist := make([]*Node, ws.GetNodeListLen())
+
+	for _, v := range ws.nodeList {
+
+		newstat := new(pb.Stat)
+		*newstat = *v.Stat
+
+		newnode := &Node{IP: v.IP, Port: v.Port, WorkerID: v.WorkerID, Stat: newstat}
+		newlist = append(newlist, newnode)
+
+	}
+
+	return newlist
 }
