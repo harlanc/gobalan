@@ -124,7 +124,7 @@ func (w *clientWatchStream) sendLoop() {
 			m := NewMonitor(w.ctx)
 			m.Start()
 			select {
-			case s := <-m.Stat:
+			case s := <-m.StatPB:
 				any, err := ptypes.MarshalAny(&s)
 				if err != nil {
 					fmt.Println(err)

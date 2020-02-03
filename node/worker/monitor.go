@@ -5,38 +5,43 @@ import (
 	"fmt"
 	"time"
 
+	stat "github.com/akhenakh/statgo"
 	"github.com/harlanc/gobalan/config"
 	pb "github.com/harlanc/gobalan/proto"
-	"github.com/harlanc/gobalan/stat"
 )
 
 //Monitor monitor the server stat
 type Monitor struct {
 	Ctx        context.Context
-	Stat       chan pb.Stat
+	StatPB     chan pb.Stat
+	stat       *stat.Stat
 	ticker     *time.Ticker
 	adapterIdx int
 }
 
 //NewMonitor new a monitor
 func NewMonitor(c context.Context) *Monitor {
-	return &Monitor{Stat: make(chan pb.Stat, 1),
+	return &Monitor{StatPB: make(chan pb.Stat, 1),
 		ticker:     time.NewTicker(time.Duration(config.CfgWorker.LoadReportInterval) * time.Second),
 		adapterIdx: -1,
-		Ctx:        c}
+		Ctx:        c,
+		stat:       stat.NewStat()}
 }
 
 //Start start the monitor
 func (m *Monitor) Start() {
 
-	for {
-		select {
-		case <-m.ticker.C:
-			m.Stat <- m.ReadStat()
-		case <-m.Ctx.Done():
-			return
+	go func() {
+		for {
+			select {
+			case <-m.ticker.C:
+				m.StatPB <- m.ReadStat()
+			case <-m.Ctx.Done():
+				return
+			}
 		}
-	}
+	}()
+
 }
 
 //GetAdapterIndex get the network adapter index
@@ -55,29 +60,35 @@ func (m *Monitor) GetAdapterIndex(nis []*stat.NetIOStats) int {
 //ReadStat read the server load
 func (m *Monitor) ReadStat() pb.Stat {
 
-	st := stat.NewStat()
-
-	time.Sleep(time.Millisecond * 100)
-
-	var cpu chan float32
-	var memory chan float32
-	var bandwidthR chan float32
-	var bandwidthW chan float32
+	cpu := make(chan float32, 1)
+	memory := make(chan float32, 1)
+	bandwidthR := make(chan float32, 1)
+	bandwidthW := make(chan float32, 1)
 
 	go func(c chan float32, s *stat.Stat) {
+
+		s.CPUStats()
+		time.Sleep(time.Second)
 		cpus := s.CPUStats()
+
 		c <- (100 - float32(cpus.Idle)) / 100 // range from 0 ~ 1
 
-	}(cpu, st)
+	}(cpu, m.stat)
 
 	go func(m chan float32, s *stat.Stat) {
+
+		s.MemStats()
+		time.Sleep(time.Second)
 		memorys := s.MemStats()
+
 		m <- (float32(memorys.Used) / float32(memorys.Total)) //range from 0 ~ 1
 
-	}(memory, st)
+	}(memory, m.stat)
 
 	go func(br chan float32, bw chan float32, s *stat.Stat) {
 
+		s.NetIOStats()
+		time.Sleep(time.Second)
 		io := s.NetIOStats()
 
 		if m.adapterIdx == -1 {
@@ -89,11 +100,12 @@ func (m *Monitor) ReadStat() pb.Stat {
 		}
 
 		totalbandwidth := config.CfgWorker.MaxNetworkBandwidth
+		fmt.Printf("R %d KB\n", io[m.adapterIdx].RX/1024)
 
 		br <- (float32(io[m.adapterIdx].RX) / 1024 / 1024 * 8) / totalbandwidth // range from 0 ~ 1
 		bw <- (float32(io[m.adapterIdx].TX) / 1024 / 1024 * 8) / totalbandwidth // range from 0 ~ 1
 
-	}(bandwidthR, bandwidthW, st)
+	}(bandwidthR, bandwidthW, m.stat)
 
 	return pb.Stat{CpuUsageRate: <-cpu, MemoryUsageRate: <-memory, ReadNetworkIOUsageRate: <-bandwidthR, WriteNetworkIOUsageRate: <-bandwidthW}
 
