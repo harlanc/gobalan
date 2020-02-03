@@ -11,6 +11,8 @@ var (
 	CfgMaster *cfgMaster = new(cfgMaster)
 	//CfgWorker exported Worker configurations
 	CfgWorker *cfgWorker = new(cfgWorker)
+	//CfgPath the configuration file full path
+	cfgPath *string = new(string)
 )
 
 //cfgMaster configurations
@@ -32,17 +34,18 @@ type cfgWorker struct {
 	NetworkAdapterName  string
 }
 
-func init() {
+// func init() {
 
-	LoadCfg()
+// 	LoadCfg()
 
-}
+// }
 
 //LoadCfg load configuration data
 func LoadCfg() {
-	cfg, err := ini.Load("config.ini")
+
+	cfg, err := ini.Load(*cfgPath)
 	if err != nil {
-		fmt.Println("Cannot load configuration file.")
+		fmt.Println(err)
 		return
 	}
 
@@ -57,5 +60,11 @@ func LoadCfg() {
 		fmt.Println("The section Worker's data cannot be load")
 		return
 	}
+}
+
+//SetCfgPath set the cfg Path
+func SetCfgPath(path string) {
+
+	cfgPath = &path
 
 }

@@ -15,7 +15,7 @@ func init() {
 	Register(NewOptimalPerformance())
 }
 
-//NewOptimalPerformance new RoundRobin balancer
+//NewOptimalPerformance new optimal performance balancer
 func NewOptimalPerformance() Balancer {
 	rr := &OptimalPerformance{}
 	return rr
