@@ -5,32 +5,34 @@ import (
 	"net"
 
 	"google.golang.org/grpc"
-	codes "google.golang.org/grpc/codes"
-	status "google.golang.org/grpc/status"
 
+	"github.com/harlanc/gobalan/balancer"
 	pb "github.com/harlanc/gobalan/proto"
 )
 
-//LBMasterServer the master server struct
-type LBMasterServer struct {
-	addr string
-	rpcs *grpc.Server
-	hbs  pb.HeartbeatServer
+//MasterServer the master server struct
+type MasterServer struct {
+	addr  string
+	rpcs  *grpc.Server
+	rpcps pb.RPCPickServer
+	rpcws pb.WatchServer
 }
 
-//NewLBMasterServer new a master server
-func NewLBMasterServer(addr string) *LBMasterServer {
+//NewMasterServer new a master server
+func NewMasterServer(addr string) *MasterServer {
 
 	s := grpc.NewServer()
-	ms := &LBMasterServer{
-		addr: addr,
-		rpcs: s,
+	ms := &MasterServer{
+		addr:  addr,
+		rpcs:  s,
+		rpcws: NewWatchServer(),
+		rpcps: balancer.NewRPCPickServer(),
 	}
 	return ms
 }
 
 //Run Run the master server
-func (ms *LBMasterServer) Run() {
+func (ms *MasterServer) Run() {
 
 	listener, err := net.Listen("tcp", ms.addr)
 	if err != nil {
@@ -39,13 +41,8 @@ func (ms *LBMasterServer) Run() {
 	}
 	log.Printf("rpc listening on:%s", ms.addr)
 
-	pb.RegisterHeartbeatServer(ms.rpcs, ms.hbs)
+	pb.RegisterRPCPickServer(ms.rpcs, ms.rpcps)
+	pb.RegisterWatchServer(ms.rpcs, ms.rpcws)
+
 	ms.rpcs.Serve(listener)
-
-}
-
-//SendHeartbeat send heartbeat
-func (ms *LBMasterServer) SendHeartbeat(srv pb.Heartbeat_SendHeartbeatServer) error {
-
-	return status.Errorf(codes.Unimplemented, "method SendHeartbeat not implemented")
 }
