@@ -22,10 +22,14 @@ type cfgMaster struct {
 
 //Worker configurations
 type cfgWorker struct {
-	IsWorker    bool
-	MasterIP    string
-	MasterPort  string
-	ServicePort string
+	IsWorker            bool
+	MasterIP            string
+	MasterPort          string
+	ServicePort         string
+	HeartbeatInterval   uint
+	LoadReportInterval  uint
+	MaxNetworkBandwidth float32
+	NetworkAdapterName  string
 }
 
 func init() {

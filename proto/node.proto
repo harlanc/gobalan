@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+package proto;
+
+message HeartbeatRequest{
+    float cpu_usage_rate = 1;
+    float memory_usage_rate = 2;
+    float bandwidth_usage_rate = 3;
+}
+
+message HeartbeatResponse{
+
+}
+
+service Heartbeat {
+    rpc SendHeartbeat(stream HeartbeatRequest) returns (HeartbeatResponse);
+}

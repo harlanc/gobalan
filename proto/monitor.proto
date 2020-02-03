@@ -1,0 +1,10 @@
+syntax = "proto3";
+
+package proto;
+message Stat{
+    float cpuUsageRate = 1;     
+	float memoryUsageRate  = 2; 
+	float readNetworkIOUsageRate =3;  //Mb
+    float writeNetworkIOUsageRate  = 4; //Mb
+}
+  

@@ -1,0 +1,25 @@
+syntax = "proto3";
+
+package proto;
+
+
+enum BalanceType{
+    
+  RoundRobin   = 0;
+  OptimalPerformance  = 1;
+}
+
+message PickRequest {
+ 
+}
+message PickResponse {
+
+    string ip = 1;
+    string port = 2;
+}
+
+service RPCPick {
+  
+  rpc RPCPick(PickRequest) returns (PickResponse);
+}
+  
