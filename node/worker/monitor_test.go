@@ -13,9 +13,9 @@ func TestMonitor(t *testing.T) {
 	config.SetCfgPath("/Users/zexu/go/src/github.com/harlanc/gobalan/config/config.ini")
 	config.LoadCfg()
 
-	config.CfgWorker.LoadReportInterval = 2
-	config.CfgWorker.NetworkAdapterName = "en0"
-	config.CfgWorker.MaxNetworkBandwidth = 200
+	config.CfgWorker.LoadReport.LoadReportInterval = 2
+	config.CfgWorker.LoadReport.NetworkAdapterName = "en0"
+	config.CfgWorker.LoadReport.MaxNetworkBandwidth = 200
 
 	ctx, cancel := context.WithTimeout(context.Background(), 200*time.Second)
 	defer cancel()

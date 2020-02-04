@@ -2,11 +2,11 @@ package worker
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	stat "github.com/akhenakh/statgo"
 	"github.com/harlanc/gobalan/config"
+	"github.com/harlanc/gobalan/logger"
 	pb "github.com/harlanc/gobalan/proto"
 )
 
@@ -22,7 +22,7 @@ type Monitor struct {
 //NewMonitor new a monitor
 func NewMonitor(c context.Context) *Monitor {
 	return &Monitor{StatPB: make(chan pb.Stat, 1),
-		ticker:     time.NewTicker(time.Duration(config.CfgWorker.LoadReportInterval) * time.Second),
+		ticker:     time.NewTicker(time.Duration(config.CfgWorker.LoadReport.LoadReportInterval) * time.Second),
 		adapterIdx: -1,
 		Ctx:        c,
 		stat:       stat.NewStat()}
@@ -48,7 +48,7 @@ func (m *Monitor) GetAdapterIndex(nis []*stat.NetIOStats) int {
 
 	for i, v := range nis {
 
-		if v.IntName == config.CfgWorker.NetworkAdapterName {
+		if v.IntName == config.CfgWorker.LoadReport.NetworkAdapterName {
 			return i
 		}
 
@@ -93,13 +93,13 @@ func (m *Monitor) ReadStat() pb.Stat {
 		if m.adapterIdx == -1 {
 			m.adapterIdx = m.GetAdapterIndex(io)
 			if m.adapterIdx == -1 {
-				fmt.Println("Cannot find the adpater name")
+				logger.LogErr("Cannot find the adpater name")
 				return
 			}
 		}
 
-		totalbandwidth := config.CfgWorker.MaxNetworkBandwidth
-		fmt.Printf("R %d KB\n", io[m.adapterIdx].RX/1024)
+		totalbandwidth := config.CfgWorker.LoadReport.MaxNetworkBandwidth
+		logger.LogDebugf("R %d KB\n", io[m.adapterIdx].RX/1024)
 
 		br <- (float32(io[m.adapterIdx].RX) / 1024 / 1024 * 8) / totalbandwidth // range from 0 ~ 1
 		bw <- (float32(io[m.adapterIdx].TX) / 1024 / 1024 * 8) / totalbandwidth // range from 0 ~ 1

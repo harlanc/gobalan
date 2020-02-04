@@ -1,6 +1,10 @@
 package balancer
 
 import (
+	"os"
+
+	"github.com/harlanc/gobalan/config"
+	"github.com/harlanc/gobalan/logger"
 	"github.com/harlanc/gobalan/node"
 	"github.com/harlanc/gobalan/proto"
 )
@@ -11,6 +15,21 @@ var (
 	//CurrentBalanceType current balancer name
 	CurrentBalanceType = proto.BalanceType_RoundRobin
 )
+
+//SetBalanceType set balance type
+func SetBalanceType() {
+
+	switch config.CfgMaster.LBAlgorithm {
+	case "RR":
+		CurrentBalanceType = proto.BalanceType_RoundRobin
+	case "OP":
+		CurrentBalanceType = proto.BalanceType_OptimalPerformance
+	default:
+		logger.LogErr("The Algorithm configured is not supported.")
+		os.Exit(3)
+	}
+
+}
 
 //Register a Balancer
 func Register(b Balancer) {

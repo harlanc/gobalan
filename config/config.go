@@ -1,34 +1,50 @@
 package config
 
 import (
-	"fmt"
-
+	"github.com/harlanc/gobalan/logger"
 	"gopkg.in/ini.v1"
 )
 
 var (
 	//CfgMaster exported Master configurations
-	CfgMaster *cfgMaster = new(cfgMaster)
+	CfgMaster *cfgMaster
 	//CfgWorker exported Worker configurations
-	CfgWorker *cfgWorker = new(cfgWorker)
-	//CfgPath the configuration file full path
-	cfgPath *string = new(string)
+	CfgWorker *cfgWorker
+	//cfgPath the configuration file full path
+	cfgPath *string
 )
+
+func init() {
+
+	CfgMaster = new(cfgMaster)
+
+	CfgWorker = new(cfgWorker)
+	cfgLoadReport := new(loadReport)
+	CfgWorker.LoadReport = cfgLoadReport
+
+	cfgPath = new(string)
+
+}
 
 //cfgMaster configurations
 type cfgMaster struct {
 	IsMaster    bool
-	MasterPort  string
-	ServicePort string
+	Port        string
+	LBAlgorithm string
 }
 
 //Worker configurations
 type cfgWorker struct {
-	IsWorker            bool
-	MasterIP            string
-	MasterPort          string
-	ServicePort         string
-	HeartbeatInterval   uint32
+	IsWorker          bool
+	MasterIP          string
+	MasterPort        string
+	ServicePort       string
+	HeartbeatInterval uint32
+	LoadReport        *loadReport
+}
+
+//LoadReport of worker
+type loadReport struct {
 	LoadReportInterval  uint32
 	MaxNetworkBandwidth float32
 	NetworkAdapterName  string
@@ -39,19 +55,25 @@ func LoadCfg() {
 
 	cfg, err := ini.Load(*cfgPath)
 	if err != nil {
-		fmt.Println(err)
+		logger.LogErr(err)
 		return
 	}
 
 	err = cfg.Section("Master").MapTo(CfgMaster)
 	if err != nil {
-		fmt.Println("The section Master's data cannot be load")
+		logger.LogErr("The section Master's data cannot be load")
 		return
 	}
 
 	err = cfg.Section("Worker").MapTo(CfgWorker)
 	if err != nil {
-		fmt.Println("The section Worker's data cannot be load")
+		logger.LogErr("The section Worker's data cannot be load")
+		return
+	}
+
+	err = cfg.ChildSections("Worker")[0].MapTo(CfgWorker.LoadReport)
+	if err != nil {
+		logger.LogErr("The section Worker.LoadReport's data cannot be load")
 		return
 	}
 }
