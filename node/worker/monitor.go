@@ -41,7 +41,6 @@ func (m *Monitor) Start() {
 			}
 		}
 	}()
-
 }
 
 //GetAdapterIndex get the network adapter index

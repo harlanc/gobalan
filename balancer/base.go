@@ -20,6 +20,5 @@ func Register(b Balancer) {
 //Balancer interface
 type Balancer interface {
 	Pick() *node.Node
-	// Build() Balancer
 	Name() string
 }

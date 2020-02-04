@@ -15,8 +15,6 @@ import (
 	"github.com/harlanc/gobalan/node"
 )
 
-//
-
 var (
 	streamRecvTimeout uint32 = 5 * 60
 )
@@ -72,7 +70,6 @@ func (sws *serverWatchStream) recvLoop() {
 	c := make(chan struct{}, 1)
 
 	for {
-
 		go func(cancel context.CancelFunc) {
 
 			select {
@@ -144,9 +141,7 @@ func (sws *serverWatchStream) recvLoop() {
 					}
 				}
 			}
-
 		}
-
 		select {
 		case <-sws.ctx.Done():
 			return

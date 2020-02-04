@@ -53,8 +53,8 @@ type watchRequest struct {
 }
 
 //NewWatcher NewWatcher
-func NewWatcher(c *LBWorkerClient) *WatchClient {
-	return &WatchClient{client: pb.NewWatchClient(c.conn)}
+func NewWatcher(c *grpc.ClientConn) *WatchClient {
+	return &WatchClient{client: pb.NewWatchClient(c)}
 }
 
 func (w *WatchClient) newClientWatchStream(inctx context.Context) *clientWatchStream {
@@ -79,7 +79,8 @@ func (w *WatchClient) newClientWatchStream(inctx context.Context) *clientWatchSt
 	return wws
 }
 
-func (w *WatchClient) run() {
+//Run run the client
+func (w *WatchClient) Run() {
 
 	cws := w.newClientWatchStream(w.ctx)
 	w.stream = cws
@@ -110,7 +111,9 @@ func (w *clientWatchStream) sendLoop() {
 
 	for {
 		select {
+
 		case <-w.heartbeatTicker.C:
+
 			err := w.gRPCClientStream.Send(wr.toWatchHeartbeatRequestPB())
 			if err != nil {
 				w.cancel()

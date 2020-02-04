@@ -34,12 +34,6 @@ type cfgWorker struct {
 	NetworkAdapterName  string
 }
 
-// func init() {
-
-// 	LoadCfg()
-
-// }
-
 //LoadCfg load configuration data
 func LoadCfg() {
 

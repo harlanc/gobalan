@@ -18,6 +18,5 @@ func NewRPCPickServer() pb.RPCPickServer {
 func (s *rpcPickServer) RPCPick(ctx context.Context, req *pb.PickRequest) (*pb.PickResponse, error) {
 
 	nd := m[CurrentBalanceType.String()].Pick()
-
 	return &pb.PickResponse{Ip: nd.IP, Port: nd.Port}, nil
 }
