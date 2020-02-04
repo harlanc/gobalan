@@ -35,7 +35,7 @@ func NewMasterServer() *MasterServer {
 //Run Run the master server
 func (ms *MasterServer) Run() {
 
-	masterAddr := fmt.Sprintf("0.0.0.0:%s", config.CfgMaster.MasterPort)
+	masterAddr := fmt.Sprintf("192.168.0.104:%s", config.CfgMaster.Port)
 
 	listener, err := net.Listen("tcp", masterAddr)
 	if err != nil {

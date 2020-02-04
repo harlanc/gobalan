@@ -18,11 +18,12 @@ func NewWorkerClient() *WorkerClient {
 
 	dialAddr := fmt.Sprintf("%s:%s", config.CfgWorker.MasterIP, config.CfgWorker.MasterPort)
 	conn, err := grpc.Dial(dialAddr, grpc.WithInsecure())
-	defer conn.Close()
+	//defer conn.Close()
 
 	if err != nil {
 		log.Fatalf("faild to connect: %v", err)
 	}
+
 	worker := &WorkerClient{watchClient: NewWatcher(conn)}
 
 	return worker
@@ -31,5 +32,5 @@ func NewWorkerClient() *WorkerClient {
 
 //Run the worker
 func (wc *WorkerClient) Run() {
-	wc.Run()
+	wc.watchClient.Run()
 }

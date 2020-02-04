@@ -1,7 +1,9 @@
 package main
 
 import (
+	"github.com/harlanc/gobalan/balancer"
 	"github.com/harlanc/gobalan/config"
+	logger "github.com/harlanc/gobalan/log"
 	"github.com/harlanc/gobalan/node/master"
 	"github.com/harlanc/gobalan/node/worker"
 )
@@ -10,6 +12,8 @@ func main() {
 
 	config.SetCfgPath("/Users/zexu/go/src/github.com/harlanc/gobalan/config/config.ini")
 	config.LoadCfg()
+	balancer.SetBalanceType()
+	logger.SetLogLevel(logger.Warn)
 
 	if config.CfgMaster.IsMaster {
 
