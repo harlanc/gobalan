@@ -9,6 +9,7 @@ import (
 
 	"github.com/golang/protobuf/ptypes"
 	"github.com/harlanc/gobalan/balancer"
+	"github.com/harlanc/gobalan/logger"
 	pb "github.com/harlanc/gobalan/proto"
 	"github.com/harlanc/gobalan/utils"
 
@@ -53,7 +54,7 @@ func (ws *watchServer) Watch(stream pb.Watch_WatchServer) (err error) {
 	sws.wg.Add(1)
 
 	go func() {
-		sws.sendAndClosee()
+		sws.sendLoop()
 		sws.wg.Done()
 	}()
 	go func() {
@@ -114,18 +115,19 @@ func (sws *serverWatchStream) recvLoop() {
 				Canceled:    err != nil,
 			}
 			if err != nil {
-				fmt.Println(err)
+				logger.LogErr(err)
 			}
 			sws.resp <- wr
 
 		case *pb.WatchRequest_HeartbeatRequest:
+			logger.LogDebug("receive Heartbeat")
 
 		case *pb.WatchRequest_LoadReportRequest:
 
 			data := uv.LoadReportRequest.LoadReportData
 			stat := &pb.Stat{}
 			if err := ptypes.UnmarshalAny(data, stat); err != nil {
-				fmt.Println("The load report data cannot be unmarshaled ")
+				logger.LogErr("The load report data cannot be unmarshaled ")
 				continue
 			}
 
@@ -151,21 +153,24 @@ func (sws *serverWatchStream) recvLoop() {
 	}
 }
 
-func (sws *serverWatchStream) sendAndClosee() {
+func (sws *serverWatchStream) sendLoop() {
 
-	select {
-	case c, ok := <-sws.resp:
-		if !ok {
-			sws.cancel()
+	for {
+		select {
+		case c, ok := <-sws.resp:
+			if !ok {
+				sws.cancel()
+				return
+			}
+			if err := sws.gRPCServerStream.Send(c); err != nil {
+				logger.LogErr(err)
+				sws.cancel()
+				return
+			}
+		case <-sws.ctx.Done():
 			return
+
 		}
-		if err := sws.gRPCServerStream.SendAndClose(c); err != nil {
-			fmt.Println(err)
-			sws.cancel()
-			return
-		}
-	case <-sws.ctx.Done():
-		return
 
 	}
 

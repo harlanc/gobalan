@@ -44,6 +44,6 @@ import "proto/balance.proto";
   }
 
  service Watch {
-  rpc Watch(stream WatchRequest) returns (WatchResponse);
+  rpc Watch(stream WatchRequest) returns (stream WatchResponse);
 }
   

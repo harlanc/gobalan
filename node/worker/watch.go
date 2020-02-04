@@ -2,7 +2,6 @@ package worker
 
 import (
 	"context"
-	"fmt"
 	"io"
 	"sync"
 	"time"
@@ -12,6 +11,7 @@ import (
 	"github.com/golang/protobuf/ptypes"
 	"github.com/golang/protobuf/ptypes/any"
 	"github.com/harlanc/gobalan/config"
+	"github.com/harlanc/gobalan/logger"
 	pb "github.com/harlanc/gobalan/proto"
 )
 
@@ -45,7 +45,6 @@ type watchStreamRequest interface {
 
 // watchRequest is issued by the subscriber to start a new watcher
 type watchRequest struct {
-	ctx               context.Context
 	workerID          uint32
 	servicePort       string
 	heartbeatInterval uint32
@@ -54,7 +53,7 @@ type watchRequest struct {
 
 //NewWatcher NewWatcher
 func NewWatcher(c *grpc.ClientConn) *WatchClient {
-	return &WatchClient{client: pb.NewWatchClient(c)}
+	return &WatchClient{client: pb.NewWatchClient(c), ctx: context.Background()}
 }
 
 func (w *WatchClient) newClientWatchStream(inctx context.Context) *clientWatchStream {
@@ -90,7 +89,7 @@ func (w *WatchClient) Run() {
 	}()
 
 	go func() {
-		cws.closeAndReceive()
+		cws.receiveLoop()
 	}()
 }
 
@@ -102,58 +101,76 @@ func (w *clientWatchStream) sendLoop() {
 	w.wgWorkerID.Add(1)
 	err := w.gRPCClientStream.Send(wr.toWatchCreateRequestPB())
 	if err != nil {
-		fmt.Println(err)
+		logger.LogErr(err)
 		w.cancel()
 		return
 	}
 	w.wgWorkerID.Wait()
 	wr.workerID = w.owner.workerID
 
-	for {
-		select {
+	go func() {
+		for {
+			select {
 
-		case <-w.heartbeatTicker.C:
+			case <-w.heartbeatTicker.C:
 
-			err := w.gRPCClientStream.Send(wr.toWatchHeartbeatRequestPB())
-			if err != nil {
-				w.cancel()
+				err := w.gRPCClientStream.Send(wr.toWatchHeartbeatRequestPB())
+				logger.LogDebug("Send Heartbeat")
+				if err != nil {
+					w.cancel()
+				}
+
+			case <-w.ctx.Done():
+				return
 			}
-
-		case <-w.ctx.Done():
-			return
 		}
 
-		if w.owner.BalanceType == pb.BalanceType_OptimalPerformance {
+	}()
 
+	if w.owner.BalanceType == pb.BalanceType_OptimalPerformance {
+
+		go func() {
 			m := NewMonitor(w.ctx)
 			m.Start()
 			select {
 			case s := <-m.StatPB:
 				any, err := ptypes.MarshalAny(&s)
 				if err != nil {
-					fmt.Println(err)
+					logger.LogErr(err)
 					w.cancel()
 				}
 				wr.loadReportData = any
 				err = w.gRPCClientStream.Send(wr.toWatchLoadReportRequestPB())
+				logger.LogDebug("Send Load Report")
 				if err != nil {
+					logger.LogErr(err)
 					w.cancel()
 				}
+			case <-w.ctx.Done():
+				return
 			}
-		}
 
+		}()
 	}
+
 }
-func (w *clientWatchStream) closeAndReceive() {
+func (w *clientWatchStream) receiveLoop() {
 
-	resp, err := w.gRPCClientStream.CloseAndRecv()
-	if err != nil && err != io.EOF {
-		w.cancel()
-		return
+	for {
+
+		resp, err := w.gRPCClientStream.Recv()
+
+		if err != nil {
+			if err != io.EOF {
+				w.cancel()
+			}
+			return
+		}
+		w.owner.workerID = resp.WorkerId
+		w.owner.BalanceType = resp.BalanceType
+		w.wgWorkerID.Done()
+
 	}
-	w.owner.workerID = resp.WorkerId
-	w.owner.BalanceType = resp.BalanceType
-	w.wgWorkerID.Done()
 
 }
 
