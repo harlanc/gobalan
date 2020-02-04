@@ -1,9 +1,10 @@
 package node
 
 import (
-	"fmt"
-	pb "github.com/harlanc/gobalan/proto"
 	"sync"
+
+	"github.com/harlanc/gobalan/logger"
+	pb "github.com/harlanc/gobalan/proto"
 )
 
 var (
@@ -50,7 +51,7 @@ func (ws *WorkerNodeContainer) DeleteNode(workerid uint32) {
 	var ok bool
 
 	if idx, ok = ws.workID2Index[workerid]; !ok {
-		fmt.Printf("The worker id  %d does not exist!", workerid)
+		logger.LogErrf("The worker id  %d does not exist!\n", workerid)
 		return
 	}
 
@@ -71,7 +72,7 @@ func (ws *WorkerNodeContainer) UpdateNode(workerid uint32, stat *pb.Stat) {
 	var ok bool
 
 	if idx, ok = ws.workID2Index[workerid]; !ok {
-		fmt.Printf("The worker id  %d does not exist!", workerid)
+		logger.LogErrf("The worker id  %d does not exist!\n", workerid)
 		return
 	}
 	ws.nodeList[idx].Stat = stat
