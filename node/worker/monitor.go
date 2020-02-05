@@ -14,7 +14,7 @@ import (
 type Monitor struct {
 	Ctx        context.Context
 	StatPB     chan pb.Stat
-	stat       *stat.Stat
+	Stat       *stat.Stat
 	ticker     *time.Ticker
 	adapterIdx int
 }
@@ -25,7 +25,7 @@ func NewMonitor(c context.Context) *Monitor {
 		ticker:     time.NewTicker(time.Duration(config.CfgWorker.LoadReport.LoadReportInterval) * time.Second),
 		adapterIdx: -1,
 		Ctx:        c,
-		stat:       stat.NewStat()}
+		Stat:       stat.NewStat()}
 }
 
 //Start start the monitor
@@ -36,6 +36,7 @@ func (m *Monitor) Start() {
 			select {
 			case <-m.ticker.C:
 				m.StatPB <- m.ReadStat()
+
 			case <-m.Ctx.Done():
 				return
 			}
@@ -64,31 +65,31 @@ func (m *Monitor) ReadStat() pb.Stat {
 	bandwidthR := make(chan float32, 1)
 	bandwidthW := make(chan float32, 1)
 
-	go func(c chan float32, s *stat.Stat) {
-
-		s.CPUStats()
+	go func() {
+		m.Stat.CPUStats()
 		time.Sleep(time.Second)
-		cpus := s.CPUStats()
+		cpus := m.Stat.CPUStats()
 
-		c <- (100 - float32(cpus.Idle)) / 100 // range from 0 ~ 1
+		logger.LogDebugf("CPU Idle %f %f %f %f %f %f\n", cpus.User, cpus.Kernel, cpus.Idle, cpus.IOWait, cpus.Swap, cpus.Nice)
+		cpu <- (100 - float32(cpus.Idle)) / 100 // range from 0 ~ 1
 
-	}(cpu, m.stat)
+	}()
 
-	go func(m chan float32, s *stat.Stat) {
+	go func() {
 
-		s.MemStats()
+		m.Stat.MemStats()
 		time.Sleep(time.Second)
-		memorys := s.MemStats()
+		memorys := m.Stat.MemStats()
 
-		m <- (float32(memorys.Used) / float32(memorys.Total)) //range from 0 ~ 1
+		memory <- (float32(memorys.Used) / float32(memorys.Total)) //range from 0 ~ 1
 
-	}(memory, m.stat)
+	}()
 
-	go func(br chan float32, bw chan float32, s *stat.Stat) {
+	go func() {
 
-		s.NetIOStats()
+		m.Stat.NetIOStats()
 		time.Sleep(time.Second)
-		io := s.NetIOStats()
+		io := m.Stat.NetIOStats()
 
 		if m.adapterIdx == -1 {
 			m.adapterIdx = m.GetAdapterIndex(io)
@@ -99,12 +100,11 @@ func (m *Monitor) ReadStat() pb.Stat {
 		}
 
 		totalbandwidth := config.CfgWorker.LoadReport.MaxNetworkBandwidth
-		logger.LogDebugf("R %d KB\n", io[m.adapterIdx].RX/1024)
 
-		br <- (float32(io[m.adapterIdx].RX) / 1024 / 1024 * 8) / totalbandwidth // range from 0 ~ 1
-		bw <- (float32(io[m.adapterIdx].TX) / 1024 / 1024 * 8) / totalbandwidth // range from 0 ~ 1
+		bandwidthR <- (float32(io[m.adapterIdx].RX) / 1024 / 1024 * 8) / totalbandwidth // range from 0 ~ 1
+		bandwidthW <- (float32(io[m.adapterIdx].TX) / 1024 / 1024 * 8) / totalbandwidth // range from 0 ~ 1
 
-	}(bandwidthR, bandwidthW, m.stat)
+	}()
 
 	return pb.Stat{CpuUsageRate: <-cpu, MemoryUsageRate: <-memory, ReadNetworkIOUsageRate: <-bandwidthR, WriteNetworkIOUsageRate: <-bandwidthW}
 

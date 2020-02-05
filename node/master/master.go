@@ -2,13 +2,13 @@ package master
 
 import (
 	"fmt"
-	"log"
 	"net"
 
 	"google.golang.org/grpc"
 
 	"github.com/harlanc/gobalan/balancer"
 	"github.com/harlanc/gobalan/config"
+	"github.com/harlanc/gobalan/logger"
 	pb "github.com/harlanc/gobalan/proto"
 )
 
@@ -39,13 +39,19 @@ func (ms *MasterServer) Run() {
 
 	listener, err := net.Listen("tcp", masterAddr)
 	if err != nil {
-		log.Printf("failed to listen: %v", err)
+		logger.LogErrf("failed to listen: %v", err)
 		return
 	}
-	log.Printf("rpc listening on:%s", masterAddr)
+	logger.LogInfof("rpc listening on:%s", masterAddr)
 
 	pb.RegisterRPCPickServer(ms.rpcs, ms.rpcps)
 	pb.RegisterWatchServer(ms.rpcs, ms.rpcws)
 
 	ms.rpcs.Serve(listener)
+}
+
+//Stop the master server
+func (ms *MasterServer) Stop() {
+	logger.LogInfo("Master server is stoped.")
+	ms.rpcs.Stop()
 }
