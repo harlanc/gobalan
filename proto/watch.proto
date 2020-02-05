@@ -11,8 +11,6 @@ import "proto/balance.proto";
       WatchCreateRequest create_request = 1;
       WatchHeartbeatRequest heartbeat_request = 2;
       WatchLoadReportRequest load_report_request = 3;
-      WatchCancelRequest cancel_request = 4;
-
     }
   }
 
@@ -24,23 +22,15 @@ import "proto/balance.proto";
 
   message WatchHeartbeatRequest {
 
-    uint32 worker_id = 1;
   }
 
   message WatchLoadReportRequest {
-    
-    uint32 worker_id = 1;
     google.protobuf.Any load_report_data = 2;
   }
-  message WatchCancelRequest {
-  
-    uint32 worker_id = 1;
-  }
+
   message WatchResponse {
     uint32 worker_id = 1;
     BalanceType balance_type = 2;
-    bool created = 3;
-    bool canceled = 4;
   }
 
  service Watch {
