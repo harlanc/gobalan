@@ -33,6 +33,7 @@ type serverWatchStream struct {
 	owner            *watchServer
 	gRPCServerStream pb.Watch_WatchServer
 	resp             chan *pb.WatchResponse
+	workerID         uint32
 
 	cancel context.CancelFunc
 	wg     sync.WaitGroup
@@ -102,17 +103,17 @@ func (sws *serverWatchStream) recvLoop() {
 				break
 			}
 			ip, err := utils.GetContextIP(sws.gRPCServerStream.Context())
+			logger.LogDebugf("The client IP is %s\n", ip)
 			nd := node.Node{IP: ip, Port: uv.CreateRequest.ServicePort}
 			workerid := utils.GenerateWorkerID()
 			node.NodeContainer.InsertNode(workerid, &nd)
+			sws.workerID = workerid
 
 			streamRecvTimeout = uv.CreateRequest.HeartbeatInterval * 3
 
 			wr := &pb.WatchResponse{
-				WorkerId:    utils.GenerateWorkerID(),
+				WorkerId:    workerid,
 				BalanceType: balancer.CurrentBalanceType,
-				Created:     true,
-				Canceled:    err != nil,
 			}
 			if err != nil {
 				logger.LogErr(err)
@@ -120,7 +121,7 @@ func (sws *serverWatchStream) recvLoop() {
 			sws.resp <- wr
 
 		case *pb.WatchRequest_HeartbeatRequest:
-			logger.LogDebug("receive Heartbeat")
+			logger.LogDebugf("The Woker %d receive Heartbeat\n", sws.workerID)
 
 		case *pb.WatchRequest_LoadReportRequest:
 
@@ -131,18 +132,8 @@ func (sws *serverWatchStream) recvLoop() {
 				continue
 			}
 
-			workerid := uv.LoadReportRequest.WorkerId
-			node.NodeContainer.UpdateNode(workerid, stat)
+			node.NodeContainer.UpdateNode(sws.workerID, stat)
 
-		case *pb.WatchRequest_CancelRequest:
-			if uv.CancelRequest != nil {
-
-				if err == nil {
-					sws.resp <- &pb.WatchResponse{
-						Canceled: true,
-					}
-				}
-			}
 		}
 		select {
 		case <-sws.ctx.Done():

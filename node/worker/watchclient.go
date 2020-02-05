@@ -51,8 +51,8 @@ type watchRequest struct {
 	loadReportData    *any.Any
 }
 
-//NewWatcher NewWatcher
-func NewWatcher(c *grpc.ClientConn) *WatchClient {
+//NewWatcherClient NewWatcherClient
+func NewWatcherClient(c *grpc.ClientConn) *WatchClient {
 	return &WatchClient{client: pb.NewWatchClient(c), ctx: context.Background()}
 }
 
@@ -93,6 +93,11 @@ func (w *WatchClient) Run() {
 	}()
 }
 
+//CloseSend close send stream
+func (w *WatchClient) CloseSend() {
+	w.stream.gRPCClientStream.CloseSend()
+}
+
 func (w *clientWatchStream) sendLoop() {
 
 	wr := &watchRequest{}
@@ -115,7 +120,7 @@ func (w *clientWatchStream) sendLoop() {
 			case <-w.heartbeatTicker.C:
 
 				err := w.gRPCClientStream.Send(wr.toWatchHeartbeatRequestPB())
-				logger.LogDebug("Send Heartbeat")
+				logger.LogDebugf("The worker %d Send Heartbeat\n", wr.workerID)
 				if err != nil {
 					w.cancel()
 				}
@@ -124,7 +129,6 @@ func (w *clientWatchStream) sendLoop() {
 				return
 			}
 		}
-
 	}()
 
 	if w.owner.BalanceType == pb.BalanceType_OptimalPerformance {
@@ -132,24 +136,27 @@ func (w *clientWatchStream) sendLoop() {
 		go func() {
 			m := NewMonitor(w.ctx)
 			m.Start()
-			select {
-			case s := <-m.StatPB:
-				any, err := ptypes.MarshalAny(&s)
-				if err != nil {
-					logger.LogErr(err)
-					w.cancel()
+			for {
+				select {
+				case s := <-m.StatPB:
+					logger.LogDebug(s)
+					any, err := ptypes.MarshalAny(&s)
+					if err != nil {
+						logger.LogErr(err)
+						w.cancel()
+					}
+					wr.loadReportData = any
+					err = w.gRPCClientStream.Send(wr.toWatchLoadReportRequestPB())
+					logger.LogDebugf("Send Load Report: CPU Usage[%f] Memory Usage[%f] Bandwidth Usage[R:%f,W:%f]\n",
+						s.GetCpuUsageRate(), s.GetMemoryUsageRate(), s.GetReadNetworkIOUsageRate(), s.GetWriteNetworkIOUsageRate())
+					if err != nil {
+						logger.LogErr(err)
+						w.cancel()
+					}
+				case <-w.ctx.Done():
+					return
 				}
-				wr.loadReportData = any
-				err = w.gRPCClientStream.Send(wr.toWatchLoadReportRequestPB())
-				logger.LogDebug("Send Load Report")
-				if err != nil {
-					logger.LogErr(err)
-					w.cancel()
-				}
-			case <-w.ctx.Done():
-				return
 			}
-
 		}()
 	}
 
@@ -184,16 +191,13 @@ func (wr *watchRequest) toWatchCreateRequestPB() *pb.WatchRequest {
 }
 
 func (wr *watchRequest) toWatchHeartbeatRequestPB() *pb.WatchRequest {
-	req := &pb.WatchHeartbeatRequest{
-		WorkerId: wr.workerID,
-	}
+	req := &pb.WatchHeartbeatRequest{}
 	cr := &pb.WatchRequest_HeartbeatRequest{HeartbeatRequest: req}
 	return &pb.WatchRequest{RequestUnion: cr}
 }
 
 func (wr *watchRequest) toWatchLoadReportRequestPB() *pb.WatchRequest {
 	req := &pb.WatchLoadReportRequest{
-		WorkerId:       wr.workerID,
 		LoadReportData: wr.loadReportData,
 	}
 	cr := &pb.WatchRequest_LoadReportRequest{LoadReportRequest: req}
