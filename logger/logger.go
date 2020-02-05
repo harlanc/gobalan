@@ -64,8 +64,10 @@ func printLog(l LogLevel, s ...interface{}) {
 func printfLog(l LogLevel, f string, s ...interface{}) {
 
 	result := []interface{}{generareLogTag(l)}
+	result = append(result, " ")
 	sf := fmt.Sprintf(f, s...)
 	result = append(result, sf)
+
 	fmt.Print(result...)
 }
 

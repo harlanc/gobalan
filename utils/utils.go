@@ -31,5 +31,15 @@ func GetContextIP(ctx context.Context) (string, error) {
 		return "", fmt.Errorf("getClientIP, peer.Addr is nil")
 	}
 
-	return pr.Addr.String(), nil
+	switch addr := pr.Addr.(type) {
+	case *net.UDPAddr:
+		return addr.IP.String(), nil
+
+	case *net.TCPAddr:
+		return addr.IP.String(), nil
+	default:
+		return "", fmt.Errorf("getClientIP, addr type cannot be processed")
+
+	}
+
 }

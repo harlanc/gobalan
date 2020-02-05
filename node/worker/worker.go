@@ -5,6 +5,7 @@ import (
 	"log"
 
 	"github.com/harlanc/gobalan/config"
+	"github.com/harlanc/gobalan/logger"
 	"google.golang.org/grpc"
 )
 
@@ -24,7 +25,7 @@ func NewWorkerClient() *WorkerClient {
 		log.Fatalf("faild to connect: %v", err)
 	}
 
-	worker := &WorkerClient{watchClient: NewWatcher(conn)}
+	worker := &WorkerClient{watchClient: NewWatcherClient(conn)}
 
 	return worker
 
@@ -33,4 +34,12 @@ func NewWorkerClient() *WorkerClient {
 //Run the worker
 func (wc *WorkerClient) Run() {
 	wc.watchClient.Run()
+}
+
+//Stop the worker
+func (wc *WorkerClient) Stop() {
+
+	logger.LogInfo("Work client is stoped.")
+	wc.watchClient.CloseSend()
+
 }

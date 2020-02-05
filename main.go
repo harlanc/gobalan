@@ -3,7 +3,8 @@ package main
 import (
 	"github.com/harlanc/gobalan/balancer"
 	"github.com/harlanc/gobalan/config"
-	logger "github.com/harlanc/gobalan/log"
+	"github.com/harlanc/gobalan/logger"
+
 	"github.com/harlanc/gobalan/node/master"
 	"github.com/harlanc/gobalan/node/worker"
 )
