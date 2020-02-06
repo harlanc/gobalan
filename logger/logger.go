@@ -2,12 +2,14 @@ package logger
 
 import (
 	"fmt"
+	"runtime"
 	"time"
 )
 
 var (
 	//curLogLevel
 	curLogLevel LogLevel = Warn
+	errLineInfo string
 )
 
 //LogLevel log level
@@ -46,7 +48,8 @@ func generareLogTag(l LogLevel) interface{} {
 	case Warn:
 		tag = fmt.Sprintf(warningColor, "[WARN ] "+time)
 	case Error:
-		tag = fmt.Sprintf(errorColor, "[ERROR] "+time)
+
+		tag = fmt.Sprintf(errorColor, "[ERROR] "+time+errLineInfo)
 	}
 
 	return tag
@@ -129,6 +132,8 @@ func LogWarnf(f string, s ...interface{}) {
 func LogErr(s ...interface{}) {
 
 	if curLogLevel <= Error {
+		_, fn, line, _ := runtime.Caller(1)
+		errLineInfo = fmt.Sprintf("[%s:%d]", fn, line)
 		printLog(Error, s...)
 	}
 }
@@ -137,6 +142,8 @@ func LogErr(s ...interface{}) {
 func LogErrf(f string, s ...interface{}) {
 
 	if curLogLevel <= Error {
+		_, fn, line, _ := runtime.Caller(1)
+		errLineInfo = fmt.Sprintf("[%s:%d]", fn, line)
 		printfLog(Error, f, s...)
 	}
 }
