@@ -2,8 +2,6 @@ package master
 
 import (
 	"context"
-	"fmt"
-	"io"
 	"sync"
 	"time"
 
@@ -34,9 +32,9 @@ type serverWatchStream struct {
 	gRPCServerStream pb.Watch_WatchServer
 	resp             chan *pb.WatchResponse
 	workerID         uint32
+	cancel           context.CancelFunc
 
-	cancel context.CancelFunc
-	wg     sync.WaitGroup
+	wg sync.WaitGroup
 }
 
 var ctrlStreamBufLen uint = 16
@@ -72,27 +70,31 @@ func (sws *serverWatchStream) recvLoop() {
 	c := make(chan struct{}, 1)
 
 	for {
-		go func(cancel context.CancelFunc) {
+		go func() {
 
 			select {
 			case <-t.C:
-				fmt.Printf("The recv stream is timeout in %d seconds.", streamRecvTimeout)
-				cancel()
+				logger.LogWarnf("The recv stream is timeout in %d seconds.\n", streamRecvTimeout)
+				sws.close()
+				return
 			case <-c:
+
+			case <-sws.ctx.Done():
+
+				return
 			}
 
-		}(sws.cancel)
+		}()
 
 		req, err := sws.gRPCServerStream.Recv()
 
 		c <- struct{}{}
+
 		t.Reset(time.Duration(streamRecvTimeout) * time.Second)
 
-		if err == io.EOF {
-			return
-		}
 		if err != nil {
-			sws.cancel()
+			logger.LogErr(err)
+			sws.close()
 			return
 		}
 
@@ -104,12 +106,14 @@ func (sws *serverWatchStream) recvLoop() {
 			}
 			ip, err := utils.GetContextIP(sws.gRPCServerStream.Context())
 			logger.LogDebugf("The client IP is %s\n", ip)
-			nd := node.Node{IP: ip, Port: uv.CreateRequest.ServicePort}
+
 			workerid := utils.GenerateWorkerID()
+			nd := node.Node{IP: ip, Port: uv.CreateRequest.ServicePort, WorkerID: workerid}
 			node.NodeContainer.InsertNode(workerid, &nd)
 			sws.workerID = workerid
 
-			streamRecvTimeout = uv.CreateRequest.HeartbeatInterval * 3
+			streamRecvTimeout = uv.CreateRequest.HeartbeatInterval * 2
+			t.Reset(time.Duration(streamRecvTimeout) * time.Second)
 
 			wr := &pb.WatchResponse{
 				WorkerId:    workerid,
@@ -137,6 +141,7 @@ func (sws *serverWatchStream) recvLoop() {
 		}
 		select {
 		case <-sws.ctx.Done():
+			logger.LogDebug("recvLoop ctx is done")
 			return
 		default:
 
@@ -150,19 +155,30 @@ func (sws *serverWatchStream) sendLoop() {
 		select {
 		case c, ok := <-sws.resp:
 			if !ok {
-				sws.cancel()
+				sws.close()
 				return
 			}
 			if err := sws.gRPCServerStream.Send(c); err != nil {
 				logger.LogErr(err)
-				sws.cancel()
+				sws.close()
 				return
 			}
 		case <-sws.ctx.Done():
+			logger.LogDebug("sendLoop ctx is done")
 			return
 
 		}
 
 	}
+
+}
+
+func (sws *serverWatchStream) close() {
+
+	logger.LogErr("serverWatchStream is closed")
+
+	node.NodeContainer.DeleteNode(sws.workerID)
+	// sws.closec <- struct{}{}
+	sws.cancel()
 
 }

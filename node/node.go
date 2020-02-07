@@ -9,7 +9,7 @@ import (
 
 var (
 	//NodeContainer Work node list
-	NodeContainer *WorkerNodeContainer = &WorkerNodeContainer{nodeList: make([]*Node, MaxNodeNumber), workID2Index: make(map[uint32]int)}
+	NodeContainer *WorkerNodeContainer = &WorkerNodeContainer{nodeList: make([]*Node, 0, MaxNodeNumber), workID2Index: make(map[uint32]int)}
 	//MaxNodeNumber max node number
 	MaxNodeNumber uint = 64
 )
@@ -47,6 +47,8 @@ func (ws *WorkerNodeContainer) DeleteNode(workerid uint32) {
 	ws.mu.Lock()
 	defer ws.mu.Unlock()
 
+	logger.LogWarnf("Delete worker id %d\n", workerid)
+
 	var idx int
 	var ok bool
 
@@ -56,6 +58,10 @@ func (ws *WorkerNodeContainer) DeleteNode(workerid uint32) {
 	}
 
 	l := len(ws.nodeList)
+
+	for _, v := range ws.nodeList[idx+1:] {
+		ws.workID2Index[v.WorkerID]--
+	}
 
 	copy(ws.nodeList[idx:], ws.nodeList[idx+1:])
 	ws.nodeList[l-1] = nil
@@ -82,7 +88,7 @@ func (ws *WorkerNodeContainer) UpdateNode(workerid uint32, stat *pb.Stat) {
 //GetNodeListLen get the length
 func (ws *WorkerNodeContainer) GetNodeListLen() int {
 	ws.mu.RLock()
-	defer ws.mu.RLock()
+	defer ws.mu.RUnlock()
 
 	return len(ws.nodeList)
 }
@@ -91,7 +97,7 @@ func (ws *WorkerNodeContainer) GetNodeListLen() int {
 func (ws *WorkerNodeContainer) GetNodeList() []*Node {
 
 	ws.mu.RLock()
-	defer ws.mu.RLock()
+	defer ws.mu.RUnlock()
 
 	//deep copy
 	newlist := make([]*Node, ws.GetNodeListLen())
