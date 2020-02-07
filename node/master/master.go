@@ -42,7 +42,7 @@ func (ms *MasterServer) Run() {
 		logger.LogErrf("failed to listen: %v", err)
 		return
 	}
-	logger.LogInfof("rpc listening on:%s", masterAddr)
+	logger.LogInfof("rpc listening on:%s\n", masterAddr)
 
 	pb.RegisterRPCPickServer(ms.rpcs, ms.rpcps)
 	pb.RegisterWatchServer(ms.rpcs, ms.rpcws)

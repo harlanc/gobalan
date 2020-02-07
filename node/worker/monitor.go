@@ -10,7 +10,7 @@ import (
 	pb "github.com/harlanc/gobalan/proto"
 )
 
-//Monitor monitor the server stat
+//Monitor monitor the server stat//https://zhuanlan.zhihu.com/p/35914450
 type Monitor struct {
 	Ctx        context.Context
 	StatPB     chan pb.Stat
@@ -70,7 +70,7 @@ func (m *Monitor) ReadStat() pb.Stat {
 		time.Sleep(time.Second)
 		cpus := m.Stat.CPUStats()
 
-		logger.LogDebugf("CPU Idle %f %f %f %f %f %f\n", cpus.User, cpus.Kernel, cpus.Idle, cpus.IOWait, cpus.Swap, cpus.Nice)
+		//logger.LogDebugf("CPU Idle %f %f %f %f %f %f\n", cpus.User, cpus.Kernel, cpus.Idle, cpus.IOWait, cpus.Swap, cpus.Nice)
 		cpu <- (100 - float32(cpus.Idle)) / 100 // range from 0 ~ 1
 
 	}()

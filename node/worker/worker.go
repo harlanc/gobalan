@@ -39,7 +39,7 @@ func (wc *WorkerClient) Run() {
 //Stop the worker
 func (wc *WorkerClient) Stop() {
 
-	logger.LogInfo("Work client is stoped.")
+	logger.LogInfof("Work client %d is stoped.\n", wc.watchClient.workerID)
 	wc.watchClient.CloseSend()
 
 }
