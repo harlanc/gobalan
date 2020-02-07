@@ -20,8 +20,13 @@ import "proto/balance.proto";
     uint32 heartbeat_interval = 2; 
   }
 
-  message WatchHeartbeatRequest {
+  enum ServiceStatus{
+    Down = 0;
+    Up = 1;
+  }
 
+  message WatchHeartbeatRequest {
+    ServiceStatus service_status = 1;
   }
 
   message WatchLoadReportRequest {
