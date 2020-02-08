@@ -49,7 +49,7 @@ type loadReport struct {
 	NetworkAdapterName  string
 }
 
-//LoadCfg load the configuration file config.ini into revelant structs.
+//LoadCfg load the configuration file config.ini into relevant structs.
 func LoadCfg() {
 
 	_, filename, _, ok := runtime.Caller(1)

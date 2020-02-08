@@ -8,9 +8,9 @@ func String2Int(val string) int {
 	i, err := strconv.Atoi(val)
 	if err != nil {
 		return -1
-	} else {
-		return i
 	}
+	return i
+
 }
 
 //Int2String convert int to string

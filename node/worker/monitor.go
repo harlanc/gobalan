@@ -93,7 +93,7 @@ func (m *Monitor) ReadStat() pb.Stat {
 		if m.adapterIdx == -1 {
 			m.adapterIdx = m.GetAdapterIndex(io)
 			if m.adapterIdx == -1 {
-				logger.LogErr("Cannot find the adpater name")
+				logger.LogErr("Cannot find the adapter name")
 				return
 			}
 		}

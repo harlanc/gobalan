@@ -21,7 +21,7 @@ const (
 //127.0.0.1 since the worker is run on the same machine with monitored service
 //send and receive are used for a specified check, if using this, the 'receive'
 //message should be reponsed from the monitored service.
-//serviceUp is used for transfering service status.
+//serviceUp is used for transferring service status.
 type HealthChecker struct {
 	ip   string
 	port int

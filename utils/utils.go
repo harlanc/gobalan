@@ -11,7 +11,7 @@ import (
 
 var (
 	//WorkerID provide a unique id for Load Balance Worker.
-	workerID uint32 = 0
+	workerID uint32
 )
 
 //GenerateWorkerID generate a new work id for LB worker
