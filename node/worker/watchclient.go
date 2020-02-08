@@ -29,7 +29,7 @@ type WatchClient struct {
 // clientWatchStream tracks all watch resources attached to a single grpc stream.
 type clientWatchStream struct {
 	ctx              context.Context
-	owner            WatchClient
+	owner            *WatchClient
 	gRPCClientStream pb.Watch_WatchClient
 	cancel           context.CancelFunc
 	wgWorkerID       sync.WaitGroup
@@ -74,6 +74,7 @@ func (w *WatchClient) newClientWatchStream(inctx context.Context) *clientWatchSt
 
 		heartbeatTicker: time.NewTicker(time.Duration(config.CfgWorker.HeartbeatInterval) * time.Second),
 	}
+	wws.owner = w
 
 	return wws
 }
@@ -93,9 +94,9 @@ func (w *WatchClient) Run() {
 	}()
 }
 
-//CloseSend close send stream
-func (w *WatchClient) CloseSend() {
-	w.stream.gRPCClientStream.CloseSend()
+//Cancel cancel the stream
+func (w *WatchClient) Cancel() {
+	w.stream.cancel()
 }
 
 func (w *clientWatchStream) sendLoop() {
@@ -139,7 +140,7 @@ func (w *clientWatchStream) sendLoop() {
 			for {
 				select {
 				case s := <-m.StatPB:
-					logger.LogDebug(s)
+					//logger.LogDebug(s)
 					any, err := ptypes.MarshalAny(&s)
 					if err != nil {
 						logger.LogErr(err)
@@ -147,7 +148,7 @@ func (w *clientWatchStream) sendLoop() {
 					}
 					wr.loadReportData = any
 					err = w.gRPCClientStream.Send(wr.toWatchLoadReportRequestPB())
-					logger.LogDebugf("Send Load Report: CPU Usage[%f] Memory Usage[%f] Bandwidth Usage[R:%f,W:%f]\n",
+					logger.LogDebugf("Worker %d Send Load Report: CPU Usage[%f] Memory Usage[%f] Bandwidth Usage[R:%f,W:%f]\n", w.owner.workerID,
 						s.GetCpuUsageRate(), s.GetMemoryUsageRate(), s.GetReadNetworkIOUsageRate(), s.GetWriteNetworkIOUsageRate())
 					if err != nil {
 						logger.LogErr(err)

@@ -40,6 +40,6 @@ func (wc *WorkerClient) Run() {
 func (wc *WorkerClient) Stop() {
 
 	logger.LogInfof("Work client %d is stoped.\n", wc.watchClient.workerID)
-	wc.watchClient.CloseSend()
+	wc.watchClient.Cancel()
 
 }
