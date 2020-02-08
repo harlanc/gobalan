@@ -52,7 +52,6 @@ func (m *Monitor) GetAdapterIndex(nis []*stat.NetIOStats) int {
 		if v.IntName == config.CfgWorker.LoadReport.NetworkAdapterName {
 			return i
 		}
-
 	}
 	return -1
 }

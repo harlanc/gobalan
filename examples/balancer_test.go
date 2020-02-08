@@ -20,9 +20,6 @@ import (
 
 func Load() {
 
-	config.SetCfgPath("/Users/zexu/go/src/github.com/harlanc/gobalan/config/config.ini")
-	config.LoadCfg()
-
 	config.CfgMaster.IsMaster = true
 	config.CfgMaster.Port = 6666
 	config.CfgMaster.LBAlgorithm = "OP"
@@ -37,8 +34,6 @@ func Load() {
 	config.CfgWorker.LoadReport.NetworkAdapterName = "en0"
 
 	config.CfgWorker.ServicePort = -1
-
-	balancer.LoadBalanceType()
 
 	logger.SetLogLevel(logger.Debug)
 
@@ -68,10 +63,7 @@ func newRPCPickClient() *balancer.RPCPickClient {
 
 func TestBalancerRoundRobin(t *testing.T) {
 
-	Load()
-
 	balancer.CurrentBalanceType = proto.BalanceType_RoundRobin
-
 	ticker := time.NewTicker(time.Duration(10) * time.Second)
 
 	wg := sync.WaitGroup{}

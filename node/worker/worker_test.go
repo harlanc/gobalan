@@ -6,8 +6,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/harlanc/gobalan/balancer"
-
 	"github.com/harlanc/gobalan/config"
 	"github.com/harlanc/gobalan/logger"
 	"github.com/harlanc/gobalan/node"
@@ -15,9 +13,6 @@ import (
 )
 
 func Load() {
-
-	config.SetCfgPath("/Users/zexu/go/src/github.com/harlanc/gobalan/config/config.ini")
-	config.LoadCfg()
 
 	config.CfgMaster.IsMaster = true
 	config.CfgMaster.Port = 6666
@@ -34,8 +29,7 @@ func Load() {
 
 	config.CfgWorker.ServicePort = -1
 
-	balancer.LoadBalanceType()
-	logger.SetLogLevel(logger.Debug)
+	//logger.SetLogLevel(logger.Debug)
 
 }
 
@@ -91,6 +85,8 @@ func TestWorkerNumber(t *testing.T) {
 
 func TestWorkerTimeout(t *testing.T) {
 
+	logger.SetLogLevel(logger.Debug)
+
 	Load()
 
 	serverticker := time.NewTicker(time.Duration(20) * time.Second)
@@ -140,12 +136,12 @@ func TestWorkerTimeout(t *testing.T) {
 		t.Error("The worker node number is not correct!!!")
 
 	} else {
-		logger.LogInfof("The worker node number is correct.")
+		logger.LogInfof("The worker node number is correct.\n")
 	}
 
 	<-ch
 
-	time.Sleep(time.Second * time.Duration(config.CfgWorker.HeartbeatInterval*2))
+	time.Sleep(time.Second * time.Duration(config.CfgWorker.HeartbeatInterval*4))
 	num := node.NodeContainer.GetNodeListLen()
 	if !reflect.DeepEqual(num, 3) {
 		t.Error("The worker node number is not correct!!!")

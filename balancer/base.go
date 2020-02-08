@@ -9,6 +9,10 @@ import (
 	"github.com/harlanc/gobalan/proto"
 )
 
+func init() {
+	LoadBalanceType()
+}
+
 var (
 	// m is a map from name to balancer builder.
 	m = make(map[string]Balancer)

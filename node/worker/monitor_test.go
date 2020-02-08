@@ -11,10 +11,7 @@ import (
 
 func TestMonitor(t *testing.T) {
 
-	config.SetCfgPath("/Users/zexu/go/src/github.com/harlanc/gobalan/config/config.ini")
-	config.LoadCfg()
-
-	logger.SetLogLevel(logger.Debug)
+	//logger.SetLogLevel(logger.Debug)
 
 	config.CfgWorker.LoadReport.LoadReportInterval = 2
 	config.CfgWorker.LoadReport.NetworkAdapterName = "en0"

@@ -75,7 +75,7 @@ func newServer() {
 
 func TestHealthCheck(t *testing.T) {
 
-	logger.SetLogLevel(logger.Debug)
+	//logger.SetLogLevel(logger.Debug)
 
 	newServer()
 	hc := NewHealthChecker(ip, port, "", "")
@@ -97,7 +97,7 @@ func TestHealthCheck(t *testing.T) {
 
 func TestHCSendReceive(t *testing.T) {
 
-	logger.SetLogLevel(logger.Debug)
+	//logger.SetLogLevel(logger.Debug)
 
 	newServer()
 	hc := NewHealthChecker(ip, port, "Send", "Receive")
@@ -122,7 +122,7 @@ func TestHCSendReceive(t *testing.T) {
 
 func TestHCRun(t *testing.T) {
 
-	logger.SetLogLevel(logger.Debug)
+	//logger.SetLogLevel(logger.Debug)
 
 	newServer()
 	hc := NewHealthChecker(ip, port, "", "")
