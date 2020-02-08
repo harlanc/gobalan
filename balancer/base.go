@@ -16,8 +16,8 @@ var (
 	CurrentBalanceType = proto.BalanceType_RoundRobin
 )
 
-//SetBalanceType set balance type
-func SetBalanceType() {
+//LoadBalanceType set balance type
+func LoadBalanceType() {
 
 	switch config.CfgMaster.LBAlgorithm {
 	case "RR":
@@ -28,7 +28,6 @@ func SetBalanceType() {
 		logger.LogErr("The Algorithm configured is not supported.")
 		os.Exit(3)
 	}
-
 }
 
 //Register a Balancer

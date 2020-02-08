@@ -29,7 +29,7 @@ func init() {
 //cfgMaster configurations
 type cfgMaster struct {
 	IsMaster    bool
-	Port        string
+	Port        int32
 	LBAlgorithm string
 }
 

@@ -13,8 +13,8 @@ type RPCPickClient struct {
 	client pb.RPCPickClient
 }
 
-//NewWatcherClient NewWatcherClient
-func NewWatcherClient(c *grpc.ClientConn) *RPCPickClient {
+//NewRPCPickClient NewWatcherClient
+func NewRPCPickClient(c *grpc.ClientConn) *RPCPickClient {
 	return &RPCPickClient{client: pb.NewRPCPickClient(c), ctx: context.Background()}
 }
 

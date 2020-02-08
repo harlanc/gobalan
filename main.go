@@ -13,7 +13,7 @@ func main() {
 
 	config.SetCfgPath("/Users/zexu/go/src/github.com/harlanc/gobalan/config/config.ini")
 	config.LoadCfg()
-	balancer.SetBalanceType()
+	balancer.LoadBalanceType()
 	logger.SetLogLevel(logger.Warn)
 
 	if config.CfgMaster.IsMaster {

@@ -1,7 +1,6 @@
 package worker
 
 import (
-	"log"
 	"reflect"
 	"sync"
 	"testing"
@@ -21,7 +20,7 @@ func Load() {
 	config.LoadCfg()
 
 	config.CfgMaster.IsMaster = true
-	config.CfgMaster.Port = "6666"
+	config.CfgMaster.Port = 6666
 	config.CfgMaster.LBAlgorithm = "OP"
 
 	config.CfgWorker.IsWorker = true
@@ -35,9 +34,7 @@ func Load() {
 
 	config.CfgWorker.ServicePort = -1
 
-	balancer.SetBalanceType()
-	log.SetFlags(log.LstdFlags | log.Lshortfile)
-
+	balancer.LoadBalanceType()
 	logger.SetLogLevel(logger.Debug)
 
 }
@@ -164,12 +161,12 @@ func TestWorkerRetry(t *testing.T) {
 	Load()
 
 	var wc *WorkerClient
-
 	go func() {
 		wc = RunWorker()
 	}()
 
 	time.Sleep(time.Second * time.Duration(10))
+
 	ticker := time.NewTicker(time.Duration(20) * time.Second)
 	s := master.NewMasterServer()
 
