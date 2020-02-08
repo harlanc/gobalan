@@ -123,7 +123,7 @@ func (ws *WorkerNodeContainer) GetNodeList() []*Node {
 		if v.Stat != nil {
 			*newstat = *v.Stat
 		}
-		newnode := &Node{IP: v.IP, Port: v.Port, WorkerID: v.WorkerID, Stat: newstat}
+		newnode := &Node{IP: v.IP, Port: v.Port, WorkerID: v.WorkerID, Stat: newstat, ServiceStatus: v.ServiceStatus}
 		newlist = append(newlist, newnode)
 
 	}

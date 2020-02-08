@@ -125,6 +125,9 @@ func (w *clientWatchStream) sendLoop() {
 	}
 	w.wgWorkerID.Wait()
 	wr.workerID = w.owner.workerID
+	//Here we set the init value to true for convenient testing
+	//
+	wr.serviceUp = true
 
 	go func() {
 		if w.healthchecker == nil {
