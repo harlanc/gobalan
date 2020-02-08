@@ -42,7 +42,7 @@ func (op *OptimalPerformance) Pick() *node.Node {
 	for i, v := range nl {
 
 		curscore := op.Score(v.Stat)
-		if curscore < score {
+		if v.ServiceStatus == pb.ServiceStatus_Up && (curscore < score) {
 			score = curscore
 			idx = i
 		}

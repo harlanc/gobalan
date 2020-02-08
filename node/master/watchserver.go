@@ -108,7 +108,7 @@ func (sws *serverWatchStream) recvLoop() {
 			logger.LogDebugf("The client IP is %s\n", ip)
 
 			workerid := utils.GenerateWorkerID()
-			nd := node.Node{IP: ip, Port: uv.CreateRequest.ServicePort, WorkerID: workerid}
+			nd := node.Node{IP: ip, Port: uv.CreateRequest.ServicePort, WorkerID: workerid, ServiceStatus: pb.ServiceStatus_Up}
 			node.NodeContainer.InsertNode(workerid, &nd)
 			sws.workerID = workerid
 
@@ -125,6 +125,9 @@ func (sws *serverWatchStream) recvLoop() {
 			sws.resp <- wr
 
 		case *pb.WatchRequest_HeartbeatRequest:
+
+			ss := uv.HeartbeatRequest.ServiceStatus
+			node.NodeContainer.UpdateNodeServiceStatus(sws.workerID, ss)
 			logger.LogDebugf("The Woker %d receive Heartbeat\n", sws.workerID)
 
 		case *pb.WatchRequest_LoadReportRequest:
@@ -135,9 +138,7 @@ func (sws *serverWatchStream) recvLoop() {
 				logger.LogErr("The load report data cannot be unmarshaled ")
 				continue
 			}
-
-			node.NodeContainer.UpdateNode(sws.workerID, stat)
-
+			node.NodeContainer.UpdateNodeStat(sws.workerID, stat)
 		}
 		select {
 		case <-sws.ctx.Done():

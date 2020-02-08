@@ -2,7 +2,7 @@ package balancer
 
 import (
 	"github.com/harlanc/gobalan/node"
-	"github.com/harlanc/gobalan/proto"
+	pb "github.com/harlanc/gobalan/proto"
 )
 
 func init() {
@@ -22,14 +22,23 @@ type RoundRobin struct {
 
 //Name get balancer name
 func (rr *RoundRobin) Name() string {
-	return proto.BalanceType_RoundRobin.String()
+	return pb.BalanceType_RoundRobin.String()
 }
 
 //Pick pick a node
 func (rr *RoundRobin) Pick() *node.Node {
 
 	nl := node.NodeContainer.GetNodeList()
-	n := nl[rr.next]
-	rr.next = (rr.next + 1) % len(nl)
-	return n
+	l := len(nl)
+
+	var rv *node.Node
+	for i := 0; i < l; i++ {
+		rv = nl[rr.next%l]
+		rr.next = (rr.next + 1) % l
+		if rv.ServiceStatus == pb.ServiceStatus_Up {
+			return rv
+		}
+	}
+
+	return nil
 }

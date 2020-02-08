@@ -16,10 +16,11 @@ var (
 
 //Node store a server info
 type Node struct {
-	IP       string
-	Port     int32
-	WorkerID uint32
-	Stat     *pb.Stat
+	IP            string
+	Port          int32
+	WorkerID      uint32
+	Stat          *pb.Stat
+	ServiceStatus pb.ServiceStatus
 }
 
 //WorkerNodeContainer collection worker node list
@@ -69,8 +70,8 @@ func (ws *WorkerNodeContainer) DeleteNode(workerid uint32) {
 	delete(ws.workID2Index, workerid)
 }
 
-//UpdateNode delete a worker node
-func (ws *WorkerNodeContainer) UpdateNode(workerid uint32, stat *pb.Stat) {
+//UpdateNodeStat delete a worker node
+func (ws *WorkerNodeContainer) UpdateNodeStat(workerid uint32, stat *pb.Stat) {
 	ws.mu.Lock()
 	defer ws.mu.Unlock()
 
@@ -82,7 +83,21 @@ func (ws *WorkerNodeContainer) UpdateNode(workerid uint32, stat *pb.Stat) {
 		return
 	}
 	ws.nodeList[idx].Stat = stat
+}
 
+//UpdateNodeServiceStatus delete a worker node
+func (ws *WorkerNodeContainer) UpdateNodeServiceStatus(workerid uint32, status pb.ServiceStatus) {
+	ws.mu.Lock()
+	defer ws.mu.Unlock()
+
+	var idx int
+	var ok bool
+
+	if idx, ok = ws.workID2Index[workerid]; !ok {
+		logger.LogErrf("The worker id  %d does not exist!\n", workerid)
+		return
+	}
+	ws.nodeList[idx].ServiceStatus = status
 }
 
 //GetNodeListLen get the length
