@@ -2,7 +2,6 @@ package worker
 
 import (
 	"fmt"
-	"log"
 
 	"github.com/harlanc/gobalan/config"
 	"github.com/harlanc/gobalan/logger"
@@ -22,11 +21,10 @@ func NewWorkerClient() *WorkerClient {
 	//defer conn.Close()
 
 	if err != nil {
-		log.Fatalf("faild to connect: %v", err)
+		logger.LogErrf("faild to connect: %v", err)
 	}
 
 	worker := &WorkerClient{watchClient: NewWatcherClient(conn)}
-
 	return worker
 
 }

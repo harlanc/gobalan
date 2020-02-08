@@ -64,10 +64,16 @@ func (w *WatchClient) newClientWatchStream(inctx context.Context) *clientWatchSt
 	var wc pb.Watch_WatchClient
 	var err error
 	//https://github.com/grpc/grpc-go/blob/master/examples/features/cancellation/client/main.go
-	if wc, err = w.client.Watch(w.ctx, w.callOpts...); err != nil {
-		cancel()
-		return nil
+	for {
+
+		wc, err = w.client.Watch(w.ctx, w.callOpts...)
+		if err == nil {
+			break
+		}
+		logger.LogErrf("newClientWatchStream err %v\n", err)
+		time.Sleep(time.Second * time.Duration(2))
 	}
+
 	wws := &clientWatchStream{
 
 		gRPCClientStream: wc,
@@ -86,6 +92,9 @@ func (w *WatchClient) newClientWatchStream(inctx context.Context) *clientWatchSt
 func (w *WatchClient) run() {
 
 	cws := w.newClientWatchStream(w.ctx)
+	if cws == nil {
+		return
+	}
 	w.stream = cws
 
 	go func() {

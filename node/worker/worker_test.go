@@ -158,3 +158,29 @@ func TestWorkerTimeout(t *testing.T) {
 	wg.Wait()
 
 }
+
+func TestWorkerRetry(t *testing.T) {
+
+	Load()
+
+	var wc *WorkerClient
+
+	go func() {
+		wc = RunWorker()
+	}()
+
+	time.Sleep(time.Second * time.Duration(10))
+	ticker := time.NewTicker(time.Duration(20) * time.Second)
+	s := master.NewMasterServer()
+
+	go func() {
+		s.Run()
+	}()
+
+	select {
+	case <-ticker.C:
+		wc.Stop()
+		s.Stop()
+	}
+
+}
