@@ -16,7 +16,12 @@ const (
 	defaultHealthCheckInterval = time.Duration(2) * time.Second
 )
 
-//HealthChecker Check worker service status
+//HealthChecker is used for health check for the service monitored by worker.
+//ip and port are service ip and port,the IP shoud always be localhost or
+//127.0.0.1 since the worker is run on the same machine with monitored service
+//send and receive are used for a specified check, if using this, the 'receive'
+//message should be reponsed from the monitored service.
+//serviceUp is used for transfering service status.
 type HealthChecker struct {
 	ip   string
 	port int
@@ -38,6 +43,8 @@ func NewHealthChecker(ip string, port int, s string, r string) *HealthChecker {
 
 //run return the checkout value
 func (hc *HealthChecker) run() {
+	// the health check process is executed every defaultHealthCheckInterval
+	// seconds.
 	ticker := time.NewTicker(defaultHealthCheckInterval)
 	go func() {
 		for {
@@ -56,7 +63,7 @@ func (hc *HealthChecker) stop() {
 	hc.closec <- struct{}{}
 }
 
-//check servcie is alive or not
+//check is used for
 func (hc *HealthChecker) check() bool {
 	conn, err := net.DialTimeout("tcp", hc.ip+":"+utils.Int2String(hc.port), defaultTCPDailTimeout)
 
@@ -92,5 +99,4 @@ func (hc *HealthChecker) check() bool {
 	}
 
 	return true
-
 }
