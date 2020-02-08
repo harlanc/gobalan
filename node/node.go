@@ -100,13 +100,14 @@ func (ws *WorkerNodeContainer) GetNodeList() []*Node {
 	defer ws.mu.RUnlock()
 
 	//deep copy
-	newlist := make([]*Node, ws.GetNodeListLen())
+	newlist := make([]*Node, 0, ws.GetNodeListLen())
 
 	for _, v := range ws.nodeList {
 
 		newstat := new(pb.Stat)
-		*newstat = *v.Stat
-
+		if v.Stat != nil {
+			*newstat = *v.Stat
+		}
 		newnode := &Node{IP: v.IP, Port: v.Port, WorkerID: v.WorkerID, Stat: newstat}
 		newlist = append(newlist, newnode)
 
