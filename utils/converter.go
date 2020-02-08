@@ -18,6 +18,11 @@ func Int2String(val int) string {
 	return strconv.Itoa(val)
 }
 
+//Int322String convert int32 to string
+func Int322String(val int32) string {
+	return strconv.FormatInt(int64(val), 10)
+}
+
 //Int642String convert int64 to string
 func Int642String(val int64) string {
 	return strconv.FormatInt(val, 10)

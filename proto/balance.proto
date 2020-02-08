@@ -16,6 +16,7 @@ message PickResponse {
 
     string ip = 1;
     int32 port = 2;
+    uint32 worker_id = 3;
 }
 
 service RPCPick {
