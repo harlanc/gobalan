@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/harlanc/gobalan/config"
+	"github.com/harlanc/gobalan/logger"
 )
 
 func TestMonitor(t *testing.T) {
@@ -13,11 +14,13 @@ func TestMonitor(t *testing.T) {
 	config.SetCfgPath("/Users/zexu/go/src/github.com/harlanc/gobalan/config/config.ini")
 	config.LoadCfg()
 
+	logger.SetLogLevel(logger.Debug)
+
 	config.CfgWorker.LoadReport.LoadReportInterval = 2
 	config.CfgWorker.LoadReport.NetworkAdapterName = "en0"
 	config.CfgWorker.LoadReport.MaxNetworkBandwidth = 200
 
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
 	defer cancel()
 
 	monitor := NewMonitor(ctx)
@@ -26,9 +29,9 @@ func TestMonitor(t *testing.T) {
 	for {
 		select {
 		case val := <-monitor.StatPB:
-			t.Log(val)
+			logger.LogDebug(val)
 		case <-ctx.Done():
-			t.Log("cancel is issued.")
+			logger.LogDebug("cancel is issued.")
 			return
 		}
 	}

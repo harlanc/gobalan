@@ -17,7 +17,7 @@ var (
 //Node store a server info
 type Node struct {
 	IP       string
-	Port     string
+	Port     int32
 	WorkerID uint32
 	Stat     *pb.Stat
 }

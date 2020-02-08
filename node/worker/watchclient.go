@@ -34,6 +34,7 @@ type clientWatchStream struct {
 	cancel           context.CancelFunc
 	wgWorkerID       sync.WaitGroup
 	heartbeatTicker  *time.Ticker
+	healthchecker    *HealthChecker
 }
 
 // watchStreamRequest is a union of the supported watch request operation types
@@ -48,6 +49,7 @@ type watchRequest struct {
 	workerID          uint32
 	servicePort       string
 	heartbeatInterval uint32
+	serviceUp         bool
 	loadReportData    *any.Any
 }
 
@@ -73,14 +75,15 @@ func (w *WatchClient) newClientWatchStream(inctx context.Context) *clientWatchSt
 		cancel:           cancel,
 
 		heartbeatTicker: time.NewTicker(time.Duration(config.CfgWorker.HeartbeatInterval) * time.Second),
+		healthchecker:   NewHealthChecker("localhost", int(config.CfgWorker.ServicePort), "", ""),
 	}
 	wws.owner = w
 
 	return wws
 }
 
-//Run run the client
-func (w *WatchClient) Run() {
+//run run the client
+func (w *WatchClient) run() {
 
 	cws := w.newClientWatchStream(w.ctx)
 	w.stream = cws
@@ -94,9 +97,9 @@ func (w *WatchClient) Run() {
 	}()
 }
 
-//Cancel cancel the stream
-func (w *WatchClient) Cancel() {
-	w.stream.cancel()
+//Stop cancel the stream
+func (w *WatchClient) stop() {
+	w.stream.stop()
 }
 
 func (w *clientWatchStream) sendLoop() {
@@ -108,22 +111,34 @@ func (w *clientWatchStream) sendLoop() {
 	err := w.gRPCClientStream.Send(wr.toWatchCreateRequestPB())
 	if err != nil {
 		logger.LogErr(err)
-		w.cancel()
+		w.stop()
 		return
 	}
 	w.wgWorkerID.Wait()
 	wr.workerID = w.owner.workerID
 
 	go func() {
+		if w.healthchecker == nil {
+			return
+		}
+		w.healthchecker.run()
 		for {
 			select {
+			case cv := <-w.healthchecker.serviceUp:
+				wr.serviceUp = cv
+			}
+		}
+	}()
 
+	go func() {
+		for {
+			select {
 			case <-w.heartbeatTicker.C:
 
 				err := w.gRPCClientStream.Send(wr.toWatchHeartbeatRequestPB())
 				logger.LogDebugf("The worker %d Send Heartbeat\n", wr.workerID)
 				if err != nil {
-					w.cancel()
+					w.stop()
 				}
 
 			case <-w.ctx.Done():
@@ -144,7 +159,7 @@ func (w *clientWatchStream) sendLoop() {
 					any, err := ptypes.MarshalAny(&s)
 					if err != nil {
 						logger.LogErr(err)
-						w.cancel()
+						w.stop()
 					}
 					wr.loadReportData = any
 					err = w.gRPCClientStream.Send(wr.toWatchLoadReportRequestPB())
@@ -152,7 +167,7 @@ func (w *clientWatchStream) sendLoop() {
 						s.GetCpuUsageRate(), s.GetMemoryUsageRate(), s.GetReadNetworkIOUsageRate(), s.GetWriteNetworkIOUsageRate())
 					if err != nil {
 						logger.LogErr(err)
-						w.cancel()
+						w.stop()
 					}
 				case <-w.ctx.Done():
 					return
@@ -160,24 +175,28 @@ func (w *clientWatchStream) sendLoop() {
 			}
 		}()
 	}
-
 }
+
 func (w *clientWatchStream) receiveLoop() {
 
 	for {
-
 		resp, err := w.gRPCClientStream.Recv()
-
 		if err != nil {
 			if err != io.EOF {
-				w.cancel()
+				w.stop()
 			}
 			return
 		}
 		w.owner.workerID = resp.WorkerId
 		w.owner.BalanceType = resp.BalanceType
 		w.wgWorkerID.Done()
+	}
+}
 
+func (w *clientWatchStream) stop() {
+	w.cancel()
+	if w.healthchecker != nil {
+		w.healthchecker.stop()
 	}
 
 }
@@ -192,7 +211,13 @@ func (wr *watchRequest) toWatchCreateRequestPB() *pb.WatchRequest {
 }
 
 func (wr *watchRequest) toWatchHeartbeatRequestPB() *pb.WatchRequest {
-	req := &pb.WatchHeartbeatRequest{}
+	var ss pb.ServiceStatus
+	if wr.serviceUp {
+		ss = pb.ServiceStatus_Up
+	} else {
+		ss = pb.ServiceStatus_Down
+	}
+	req := &pb.WatchHeartbeatRequest{ServiceStatus: ss}
 	cr := &pb.WatchRequest_HeartbeatRequest{HeartbeatRequest: req}
 	return &pb.WatchRequest{RequestUnion: cr}
 }

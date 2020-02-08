@@ -14,11 +14,13 @@ import (
 var (
 	ip   = "localhost"
 	port = 6689
+
+	defalutServerTimeoutValue = time.Second * time.Duration(10)
 )
 
 func newServer() {
 
-	t := time.NewTimer(time.Second * time.Duration(10))
+	t := time.NewTimer(defalutServerTimeoutValue)
 
 	l, err := net.Listen("tcp", ip+":"+utils.Int2String(port))
 	if err != nil {
@@ -37,15 +39,16 @@ func newServer() {
 				return
 			}
 			// Handle connections in a new goroutine.
+
 			go func() {
-				defer conn.Close()
 				out := make([]byte, 1024)
 				var receivestr string
+
 				if num, err := conn.Read(out); err == nil {
 					receivestr = string(out[0:num])
 					logger.LogDebugf("Server Receive: %s\n", receivestr)
 				} else {
-					logger.LogErr("Server Receive Error")
+					logger.LogErrf("Server Receive Error %v\n", err)
 					return
 				}
 				if receivestr == "Send" {
@@ -63,6 +66,7 @@ func newServer() {
 	go func() {
 		select {
 		case <-t.C:
+			logger.LogInfo("Server is closed...")
 			l.Close()
 		}
 	}()
@@ -75,18 +79,18 @@ func TestHealthCheck(t *testing.T) {
 
 	newServer()
 	hc := NewHealthChecker(ip, port, "", "")
-	if !reflect.DeepEqual(hc.Check(), true) {
+	if !reflect.DeepEqual(hc.check(), true) {
 		t.Error("the check value is not right")
 	} else {
 		logger.LogInfo("The check value is right.")
 	}
 
-	ti := time.NewTimer(time.Second * time.Duration(10))
+	ti := time.NewTimer(defalutServerTimeoutValue)
 
 	select {
 	case <-ti.C:
 	}
-	if !reflect.DeepEqual(hc.Check(), false) {
+	if !reflect.DeepEqual(hc.check(), false) {
 		t.Error("the check value is not right")
 	}
 }
@@ -97,7 +101,7 @@ func TestHCSendReceive(t *testing.T) {
 
 	newServer()
 	hc := NewHealthChecker(ip, port, "Send", "Receive")
-	if !reflect.DeepEqual(hc.Check(), true) {
+	if !reflect.DeepEqual(hc.check(), true) {
 		t.Error("the check value is not right")
 	} else {
 		logger.LogInfo("The check value is right.")
@@ -105,7 +109,37 @@ func TestHCSendReceive(t *testing.T) {
 
 	hc1 := NewHealthChecker(ip, port, "Send", "Error")
 
-	if !reflect.DeepEqual(hc1.Check(), false) {
+	if !reflect.DeepEqual(hc1.check(), false) {
 		t.Error("the check value is not right")
 	}
+
+	ti := time.NewTimer(defalutServerTimeoutValue)
+
+	select {
+	case <-ti.C:
+	}
+}
+
+func TestHCRun(t *testing.T) {
+
+	logger.SetLogLevel(logger.Debug)
+
+	newServer()
+	hc := NewHealthChecker(ip, port, "", "")
+
+	hc.run()
+
+	ti := time.NewTimer(defalutServerTimeoutValue + time.Second*time.Duration(4))
+
+	for {
+		select {
+		case <-ti.C:
+			hc.stop()
+			return
+		case value := <-hc.serviceUp:
+			logger.LogInfo(value)
+		}
+
+	}
+
 }

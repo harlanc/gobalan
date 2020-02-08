@@ -37,8 +37,8 @@ type cfgMaster struct {
 type cfgWorker struct {
 	IsWorker          bool
 	MasterIP          string
-	MasterPort        string
-	ServicePort       string
+	MasterPort        int32
+	ServicePort       int32
 	HeartbeatInterval uint32
 	LoadReport        *loadReport
 }

@@ -17,7 +17,7 @@ type WorkerClient struct {
 //NewWorkerClient new a worker client
 func NewWorkerClient() *WorkerClient {
 
-	dialAddr := fmt.Sprintf("%s:%s", config.CfgWorker.MasterIP, config.CfgWorker.MasterPort)
+	dialAddr := fmt.Sprintf("%s:%d", config.CfgWorker.MasterIP, config.CfgWorker.MasterPort)
 	conn, err := grpc.Dial(dialAddr, grpc.WithInsecure())
 	//defer conn.Close()
 
@@ -33,13 +33,13 @@ func NewWorkerClient() *WorkerClient {
 
 //Run the worker
 func (wc *WorkerClient) Run() {
-	wc.watchClient.Run()
+	wc.watchClient.run()
 }
 
 //Stop the worker
 func (wc *WorkerClient) Stop() {
 
 	logger.LogInfof("Work client %d is stoped.\n", wc.watchClient.workerID)
-	wc.watchClient.Cancel()
+	wc.watchClient.stop()
 
 }
