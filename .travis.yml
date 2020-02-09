@@ -1,0 +1,18 @@
+language: go
+
+git:
+  depth: 3
+  quiet: true
+
+install:
+  - go get -u -v github.com/akhenakh/statgo@v0.0.0-20171021021904-3ae2cda264c5
+  - go get -u -v github.com/golang/protobuf@v1.3.2
+  - go get -u -v github.com/stretchr/testify@v1.4.0
+  - go get -u -v google.golang.org/grpc@v1.26.0
+  - go get -u -v gopkg.in/ini.v1@v1.52.0
+
+go:
+  - 1.13
+
+after_success:
+  - bash <(curl -s https://codecov.io/bash)
