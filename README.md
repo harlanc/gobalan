@@ -1,6 +1,6 @@
 # gobalan
 
-[![Build Status][1]][2] [![Go Report Card][3]][4] [![MIT licensed][5]][6] 
+[![Build Status][1]][2] [![Go Report Card][3]][4] [![MIT licensed][5]][6] [![code coverage][7]][8] 
  
 [1]: https://travis-ci.org/harlanc/gobalan.svg?branch=master
 [2]: https://travis-ci.org/harlanc/gobalan
@@ -8,6 +8,8 @@
 [4]: https://goreportcard.com/report/github.com/harlanc/gobalan
 [5]: https://img.shields.io/badge/license-MIT-blue.svg
 [6]: LICENSE
+[7]: https://codecov.io/gh/harlanc/gobalan/branch/master/graph/badge.svg
+[8]: https://codecov.io/gh/harlanc/gobalan
 
 ## Introduction
 
