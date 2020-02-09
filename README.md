@@ -1,2 +1,108 @@
-# netgo-lb
-A load balancer written with golang.
+# gobalan
+
+Gobalan is a TCP load balancer that supports high network throughput and unlike the traditional load balancing algorithms, it can support a specical load balancing algorithm which is based on the machine performance.
+
+
+## Concepts
+
+Next are some concepts for gobalan:
+
+### Worker Service
+
+**Workere Service** is used for representing tcp services which needs to be load balanced.
+
+
+### Worker
+
+**Worker** runs on a machine for **Worker Service** health check and monitoring the load of the machine(e.g. CPU usage rate,Memory usage rate and network IO usage rate).It reports the above information to **Master** during some specified interval time.
+
+### Master
+
+**Master** is used for collecting **Worker Service**s' health information and machine load information.It provides service for client to pick a proper worker node using configured load balance algorithm.
+
+## Load Balance Mechanism
+
+![](http:/qiniu.harlanc.vip/2.9.2020_3:20:19.png)
+
+Look at the above picture,it describes how gobalan works:
+
+- Firstly,start **Master** and all the **Workers**,then **workers** will establish connections with **Master**, then send revelant information including health check information and machine load information to **Master**.
+
+    **Master** will register the load balance algorithms for the next picking.
+  
+- Secondly,when a client needs to request **Worker Service**,it will firstly request the **Master** to pick a proper worker node using the configured load balance algorithm.
+
+- Thirdly,after the client gets the **Worker Service**'s ip and port, it will establish connection with it and then get the service. 
+
+### Load balance algorithms
+
+Now gobalan supports two algorithms:
+
+- RoundRobin It is a tranditional load balance algorithm.
+- OptimalPerformance
+Now the machine performance scoring formula is:
+
+        score = cpu usage rate + memory usage rate + networkIO read rate + networkIO write rate
+The lower score and the better performance.
+
+You can even implement your own load balance algorithm base on the gobalan framework.
+
+## Configurations
+
+We need to do some configurations for Worker and Master,the configuration file config.ini is under config folder.
+
+### Master Configurations
+
+    ; Load Balance Master configurations.
+    [Master]
+    ; Use the current server as a master or not.
+    IsMaster = true
+    ; The port that will be connected by workers and clients.
+    Port = 5388
+    ; Load balancing algorithm
+    ; [0] Roundrobin abbr RR
+    ; [1] OptimalPerformance abbr OP
+    LBAlgorithm = OP
+
+The Master section is used for master configuration:
+
+- **IsMaster** If you use the current machine as a gobalan master then set it to **true** or else set it to **false**.
+- **Port** The port is the master service port for collecting workers' information and picking worker node for clients. 
+- **LBAlgorithm** Use this option to specify load balance algorithm.Here we use abbr. to specify.
+
+### Worker Configurations
+
+    ; Load Balance Worker configurations.
+    [Worker]
+    ; Use the current server as a worker or not.
+    IsWorker = false
+    ; The Master IP that current worker will connect to.
+    MasterIP = 192.0.2.62
+    ; The Master port that current worker will connect to.
+    MasterPort = 5388 
+    ; The service port monitored by worker. 
+    ServicePort = 143
+    ; The heartbeat sending interval (seconds) used by worker.
+    HeartbeatInterval = 5
+    ; Load report parameters about worker.
+    [Worker.LoadReport]
+    ; The worker server load report interval (seconds).
+    LoadReportInterval = 60
+    ; Max network bandwidth(Mb)
+    MaxNetworkBandwidth = 100
+    ; The adapter name monitored by worker
+    NetworkAdapterName = eth0
+The worker section is used for worker configuration:
+
+- **IsWorker** If you use the current machine as a gobalan worker then set it to **true** or else set it to **false**.
+- **MasterIP** Specify master IP that the current worker will connect to.
+- **MasterPort** Specify the master port that the current worker will connect to.
+- **ServicePort** The ServicePort is the Port of Worker Service which is run on worker machine.
+- **HeartbeatInterval** Specify the heartbeat interval.
+
+The section Worker.LoadReport is the child section of Worker:
+
+- **LoadReportInterval** Specify the machine load report interval.
+- **MaxNetworkBandwidth** Provide the current maximum network bandwidth.
+- **NetworkAdapterName** Specify the network adapter used by current machine.
+
