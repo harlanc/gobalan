@@ -1,8 +1,9 @@
 # gobalan
 
- [![Go Report Card][3]][4] [![MIT licensed][5]][6] 
+[![Build Status][1]][2] [![Go Report Card][3]][4] [![MIT licensed][5]][6] 
  
-
+[1]: https://travis-ci.org/harlanc/gobalan.svg?branch=master
+[2]: https://travis-ci.org/harlanc/gobalan
 [3]: https://goreportcard.com/badge/github.com/harlanc/gobalan
 [4]: https://goreportcard.com/report/github.com/harlanc/gobalan
 [5]: https://img.shields.io/badge/license-MIT-blue.svg
@@ -10,7 +11,7 @@
 
 ## Introduction
 
-Gobalan is a TCP load balancer that supports high network throughput and can also support a specical load balancing algorithm which is based on the machine performance.It is a per-connection load balancer.
+Gobalan is a TCP load balancer that supports high network throughput and also support a special load balancing algorithm based on the machine performance.It is a per-connection load balancer.
 
 
 ## Concepts
