@@ -1,6 +1,6 @@
 # gobalan
 
-Gobalan is a TCP load balancer that supports high network throughput and unlike the traditional load balancing algorithms, it can support a specical load balancing algorithm which is based on the machine performance.
+Gobalan is a TCP load balancer that supports high network throughput and can also support a specical load balancing algorithm which is based on the machine performance.It is a per-connection load balancer.
 
 
 ## Concepts
@@ -9,16 +9,16 @@ Next are some concepts for gobalan:
 
 ### Worker Service
 
-**Workere Service** is used for representing tcp services which needs to be load balanced.
+**Workere Service** is used for representing tcp services need to be load balanced.
 
 
 ### Worker
 
-**Worker** runs on a machine for **Worker Service** health check and monitoring the load of the machine(e.g. CPU usage rate,Memory usage rate and network IO usage rate).It reports the above information to **Master** during some specified interval time.
+**Worker** runs on a machine for **Worker Service**'s health check and monitoring the load of the machine(e.g. CPU usage rate,Memory usage rate and network IO usage rate).It reports the above information to **Master** at some specified time interval.
 
 ### Master
 
-**Master** is used for collecting **Worker Service**s' health information and machine load information.It provides service for client to pick a proper worker node using configured load balance algorithm.
+**Master** is used for collecting **Worker Service**s' health information and machine load information.It also provides service for client to pick a proper worker node using the configured load balance algorithm.
 
 ## Load Balance Mechanism
 
@@ -26,17 +26,17 @@ Next are some concepts for gobalan:
 
 Look at the above picture,it describes how gobalan works:
 
-- Firstly,start **Master** and all the **Workers**,then **workers** will establish connections with **Master**, then send revelant information including health check information and machine load information to **Master**.
+- Firstly, start **Master** node and all the **Workers** nodes,then **workers** will establish connections with **Master**, then send relevant information including health check information and machine load information to **Master**.
 
     **Master** will register the load balance algorithms for the next picking.
   
 - Secondly,when a client needs to request **Worker Service**,it will firstly request the **Master** to pick a proper worker node using the configured load balance algorithm.
 
-- Thirdly,after the client gets the **Worker Service**'s ip and port, it will establish connection with it and then get the service. 
+- Thirdly,after the client gets the **Worker Service**'s ip and port,the client will establish a connection with the selected worker node and then proceed with the service request. 
 
 ### Load balance algorithms
 
-Now gobalan supports two algorithms:
+Now gobalan supports two load balance algorithms:
 
 - RoundRobin It is a tranditional load balance algorithm.
 - OptimalPerformance
@@ -68,7 +68,7 @@ The Master section is used for master configuration:
 
 - **IsMaster** If you use the current machine as a gobalan master then set it to **true** or else set it to **false**.
 - **Port** The port is the master service port for collecting workers' information and picking worker node for clients. 
-- **LBAlgorithm** Use this option to specify load balance algorithm.Here we use abbr. to specify.
+- **LBAlgorithm** Use this option to specify load balance algorithm.Here we use the abbreviation of algorithms, that is OP or RR.
 
 ### Worker Configurations
 
@@ -98,11 +98,11 @@ The worker section is used for worker configuration:
 - **MasterIP** Specify master IP that the current worker will connect to.
 - **MasterPort** Specify the master port that the current worker will connect to.
 - **ServicePort** The ServicePort is the Port of Worker Service which is run on worker machine.
-- **HeartbeatInterval** Specify the heartbeat interval.
+- **HeartbeatInterval** Specify the heartbeat time interval.
 
 The section Worker.LoadReport is the child section of Worker:
 
-- **LoadReportInterval** Specify the machine load report interval.
+- **LoadReportInterval** Specify the machine load report time interval.
 - **MaxNetworkBandwidth** Provide the current maximum network bandwidth.
 - **NetworkAdapterName** Specify the network adapter used by current machine.
 
