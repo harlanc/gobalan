@@ -22,7 +22,7 @@ Next are some concepts for gobalan:
 
 ## Load Balance Mechanism
 
-![](http:/qiniu.harlanc.vip/2.9.2020_3:20:19.png)
+![](http://qiniu.harlanc.vip/2.9.2020_3:20:19.png)
 
 Look at the above picture,it describes how gobalan works:
 
