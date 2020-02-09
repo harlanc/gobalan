@@ -18,6 +18,9 @@ install:
   - go get -u -v google.golang.org/grpc@v1.26.0
   - go get -u -v gopkg.in/ini.v1@v1.52.0
 
+script:
+  - go test -race -coverprofile=coverage.txt -covermode=atomic
+
 go:
   - 1.13
 
