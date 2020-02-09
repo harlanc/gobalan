@@ -1,5 +1,12 @@
 language: go
 
+os:
+  - linux
+
+before_install:
+  - sudo  apt-get update
+  - sudo  apt-get -y install libstatgrab-dev
+
 git:
   depth: 3
   quiet: true
