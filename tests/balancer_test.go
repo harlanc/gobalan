@@ -1,4 +1,4 @@
-package examples
+package tests
 
 import (
 	"fmt"
@@ -62,6 +62,8 @@ func newRPCPickClient() *balancer.RPCPickClient {
 }
 
 func TestBalancerRoundRobin(t *testing.T) {
+
+	Load()
 
 	balancer.CurrentBalanceType = proto.BalanceType_RoundRobin
 	ticker := time.NewTicker(time.Duration(10) * time.Second)
