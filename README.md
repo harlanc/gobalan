@@ -1,5 +1,15 @@
 # gobalan
 
+ [![Go Report Card][3]][4] [![MIT licensed][5]][6] 
+ 
+
+[3]: https://goreportcard.com/badge/github.com/harlanc/gobalan
+[4]: https://goreportcard.com/report/github.com/harlanc/gobalan
+[5]: https://img.shields.io/badge/license-MIT-blue.svg
+[6]: LICENSE
+
+## Introduction
+
 Gobalan is a TCP load balancer that supports high network throughput and can also support a specical load balancing algorithm which is based on the machine performance.It is a per-connection load balancer.
 
 
@@ -45,7 +55,7 @@ Now the machine performance scoring formula is:
         score = cpu usage rate + memory usage rate + networkIO read rate + networkIO write rate
 The lower score and the better performance.
 
-You can even implement your own load balance algorithm base on the gobalan framework.
+You can even implement your own load balance algorithm based on the gobalan framework.
 
 ## Configurations
 
@@ -105,4 +115,27 @@ The section Worker.LoadReport is the child section of Worker:
 - **LoadReportInterval** Specify the machine load report time interval.
 - **MaxNetworkBandwidth** Provide the current maximum network bandwidth.
 - **NetworkAdapterName** Specify the network adapter used by current machine.
+
+## How to Use 
+
+The Steps are as follows:
+
+- You should install gobalan on the machine running [Worker Service](https://github.com/harlanc/gobalan#worker-service) as a worker and also install it on another machine as a master.
+- Do some configuratinos accrording to [Configurations](https://github.com/harlanc/gobalan#configurations).
+- Start both the worker and master service.
+- You need to do some extra development work to request master and parse the result for getting the real service IP and port.
+
+
+## Dependencies
+
+- [grpc-go](https://github.com/grpc/grpc-go) gobalan uses grpc-go as network communication framework.
+- [statgo](https://github.com/akhenakh/statgo) gobalan uses statgo to read the machine load in real time,bacause it is a [libstatgrab](http://www.i-scream.org/libstatgrab/) binding for Golang, so you should install the library on your work OS.
+
+
+
+
+
+
+
+
 
