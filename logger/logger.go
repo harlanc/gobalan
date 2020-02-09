@@ -9,7 +9,6 @@ import (
 var (
 	//curLogLevel
 	curLogLevel LogLevel = Warn
-	errLineInfo string
 )
 
 //LogLevel log level
@@ -49,7 +48,7 @@ func generareLogTag(l LogLevel) interface{} {
 		tag = fmt.Sprintf(warningColor, "[WARN ] "+time)
 	case Error:
 
-		tag = fmt.Sprintf(errorColor, "[ERROR] "+time+errLineInfo)
+		tag = fmt.Sprintf(errorColor, "[ERROR] "+time)
 	}
 
 	return tag
@@ -133,8 +132,9 @@ func LogErr(s ...interface{}) {
 
 	if curLogLevel <= Error {
 		_, fn, line, _ := runtime.Caller(1)
-		errLineInfo = fmt.Sprintf("[%s:%d]", fn, line)
-		printLog(Error, s...)
+		errLineInfo := fmt.Sprintf("[%s:%d]", fn, line)
+		allinfo := append([]interface{}{errLineInfo}, s...)
+		printLog(Error, allinfo...)
 	}
 }
 
@@ -143,7 +143,7 @@ func LogErrf(f string, s ...interface{}) {
 
 	if curLogLevel <= Error {
 		_, fn, line, _ := runtime.Caller(1)
-		errLineInfo = fmt.Sprintf("[%s:%d]", fn, line)
-		printfLog(Error, f, s...)
+		errLineInfo := fmt.Sprintf("[%s:%d]", fn, line)
+		printfLog(Error, errLineInfo+f, s...)
 	}
 }

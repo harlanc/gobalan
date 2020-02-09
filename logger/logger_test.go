@@ -17,5 +17,5 @@ func TestLogger(t *testing.T) {
 	LogWarnf("--%s--\n", "Log Warnf")
 
 	LogErr("Log Err")
-	LogErrf("--%s--\n", "Log Errf")
+	LogErrf("--%s--\n", "Log Errfdad")
 }
