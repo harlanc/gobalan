@@ -15,12 +15,12 @@ import (
 func Load() {
 
 	config.CfgMaster.IsMaster = true
-	config.CfgMaster.Port = 6666
+	config.CfgMaster.Port = 6660
 	config.CfgMaster.LBAlgorithm = "OP"
 
 	config.CfgWorker.IsWorker = true
-	config.CfgWorker.MasterIP = "192.168.0.104"
-	config.CfgWorker.MasterPort = 6666
+	config.CfgWorker.MasterIP = "localhost"
+	config.CfgWorker.MasterPort = 6660
 	config.CfgWorker.HeartbeatInterval = 2
 
 	config.CfgWorker.LoadReport.LoadReportInterval = 5
@@ -45,6 +45,9 @@ func RunWorker() *WorkerClient {
 func TestWorkerNumber(t *testing.T) {
 
 	Load()
+
+	config.CfgMaster.Port = 6660
+	config.CfgWorker.MasterPort = 6660
 
 	ticker := time.NewTicker(time.Duration(10) * time.Second)
 
@@ -86,6 +89,8 @@ func TestWorkerNumber(t *testing.T) {
 func TestWorkerTimeout(t *testing.T) {
 
 	logger.SetLogLevel(logger.Debug)
+	config.CfgMaster.Port = 6661
+	config.CfgWorker.MasterPort = 6661
 
 	Load()
 
@@ -155,6 +160,8 @@ func TestWorkerTimeout(t *testing.T) {
 func TestWorkerRetry(t *testing.T) {
 
 	Load()
+	config.CfgMaster.Port = 6662
+	config.CfgWorker.MasterPort = 6662
 
 	var wc *WorkerClient
 	go func() {

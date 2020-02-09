@@ -21,12 +21,12 @@ import (
 func Load() {
 
 	config.CfgMaster.IsMaster = true
-	config.CfgMaster.Port = 6666
+	config.CfgMaster.Port = 6670
 	config.CfgMaster.LBAlgorithm = "OP"
 
 	config.CfgWorker.IsWorker = true
-	config.CfgWorker.MasterIP = "192.168.0.104"
-	config.CfgWorker.MasterPort = 6666
+	config.CfgWorker.MasterIP = "localhost"
+	config.CfgWorker.MasterPort = 6670
 	config.CfgWorker.HeartbeatInterval = 2
 
 	config.CfgWorker.LoadReport.LoadReportInterval = 5
@@ -64,6 +64,8 @@ func newRPCPickClient() *balancer.RPCPickClient {
 func TestBalancerRoundRobin(t *testing.T) {
 
 	Load()
+	config.CfgMaster.Port = 6670
+	config.CfgWorker.MasterPort = 6670
 
 	balancer.CurrentBalanceType = proto.BalanceType_RoundRobin
 	ticker := time.NewTicker(time.Duration(10) * time.Second)

@@ -13,7 +13,7 @@ import (
 
 var (
 	ip   = "localhost"
-	port = 6689
+	port = 6680
 
 	defalutServerTimeoutValue = time.Second * time.Duration(10)
 )
@@ -76,6 +76,7 @@ func newServer() {
 func TestHealthCheck(t *testing.T) {
 
 	//logger.SetLogLevel(logger.Debug)
+	port = 6681
 
 	newServer()
 	hc := NewHealthChecker(ip, port, "", "")
@@ -98,6 +99,7 @@ func TestHealthCheck(t *testing.T) {
 func TestHCSendReceive(t *testing.T) {
 
 	//logger.SetLogLevel(logger.Debug)
+	port = 6682
 
 	newServer()
 	hc := NewHealthChecker(ip, port, "Send", "Receive")
@@ -123,6 +125,7 @@ func TestHCSendReceive(t *testing.T) {
 func TestHCRun(t *testing.T) {
 
 	//logger.SetLogLevel(logger.Debug)
+	port = 6683
 
 	newServer()
 	hc := NewHealthChecker(ip, port, "", "")
