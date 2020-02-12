@@ -11,7 +11,7 @@
 [7]: https://codecov.io/gh/harlanc/gobalan/branch/master/graph/badge.svg
 [8]: https://codecov.io/gh/harlanc/gobalan
 
-[中文](https://github.com/harlanc/gobalan/blob/master/README_CN.md)
+[中文文档](https://github.com/harlanc/gobalan/blob/master/README_CN.md)
 
 ## Introduction
 
