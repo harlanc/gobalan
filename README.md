@@ -11,6 +11,8 @@
 [7]: https://codecov.io/gh/harlanc/gobalan/branch/master/graph/badge.svg
 [8]: https://codecov.io/gh/harlanc/gobalan
 
+[中文](https://github.com/harlanc/gobalan/blob/master/README_CN.md)
+
 ## Introduction
 
 Gobalan is a TCP load balancer that supports high network throughput and also support a special load balancing algorithm based on the machine performance.It is a per-connection load balancer.
